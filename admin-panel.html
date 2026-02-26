@@ -1,0 +1,3020 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理パネル | ROOT競輪</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root{
+  --blue:#1f6feb;--dark:#0d1117;--dark2:#161b22;--dark3:#21262d;
+  --border:#30363d;--text:#c9d1d9;--text-dim:#8b949e;--green:#3fb950;
+  --yellow:#e3b341;--red:#f85149;--orange:#d29922;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:var(--dark);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── Top Bar ── */
+.topbar{background:var(--dark2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.topbar-title{font-weight:bold;font-size:1rem;display:flex;align-items:center;gap:8px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-logout{background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:.78rem;cursor:pointer;}
+.btn-site{background:var(--dark3);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:.78rem;text-decoration:none;}
+
+/* ── Layout ── */
+.layout{display:flex;flex:1;}
+.sidebar{width:180px;background:var(--dark2);border-right:1px solid var(--border);padding:12px 0;flex-shrink:0;position:sticky;top:45px;height:calc(100vh - 45px);overflow-y:auto;}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:10px 16px;cursor:pointer;font-size:.82rem;color:var(--text-dim);border-left:3px solid transparent;transition:all .15s;}
+.sidebar-item:hover{background:var(--dark3);color:var(--text);}
+.sidebar-item.active{background:var(--dark3);color:var(--blue);border-left-color:var(--blue);}
+.sidebar-sep{border:none;border-top:1px solid var(--border);margin:8px 0;}
+.main-content{flex:1;padding:20px;overflow-y:auto;max-height:calc(100vh - 45px);}
+
+/* ── Section panels ── */
+.panel{display:none;}
+.panel.active{display:block;}
+.panel-title{font-size:1.1rem;font-weight:bold;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+
+/* ── Cards ── */
+.card{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+.card-title{font-size:.88rem;font-weight:bold;color:var(--text-dim);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+
+/* ── Form elements ── */
+label.field-label{display:block;font-size:.75rem;font-weight:bold;color:var(--text-dim);margin-bottom:5px;}
+input[type="text"],input[type="number"],input[type="password"],
+textarea,select{width:100%;padding:9px 12px;background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.85rem;outline:none;transition:border-color .2s;font-family:inherit;}
+textarea{resize:vertical;min-height:80px;}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(31,111,235,.15);}
+.form-row{display:flex;gap:12px;margin-bottom:12px;}
+.form-row .form-col{flex:1;}
+.form-group{margin-bottom:12px;}
+
+/* ── Buttons ── */
+.btn{padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-size:.82rem;font-weight:bold;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:#388bfd;}
+.btn-success{background:var(--green);color:#000;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-outline:hover{background:var(--dark3);}
+.btn-sm{padding:5px 10px;font-size:.75rem;}
+.btn-warning{background:var(--yellow);color:#000;}
+
+/* ── Tables ── */
+table{width:100%;border-collapse:collapse;font-size:.8rem;}
+th{background:var(--dark3);padding:8px 10px;text-align:left;color:var(--text-dim);font-size:.72rem;font-weight:bold;border-bottom:1px solid var(--border);}
+td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,.03);}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:bold;}
+.badge-blue{background:rgba(31,111,235,.25);color:#58a6ff;}
+.badge-green{background:rgba(63,185,80,.2);color:#3fb950;}
+.badge-yellow{background:rgba(227,179,65,.2);color:#e3b341;}
+.badge-red{background:rgba(248,81,73,.2);color:#f85149;}
+
+/* ── Inline edit rider row ── */
+.rider-row{display:grid;grid-template-columns:40px 1fr 80px 60px 60px 70px 70px 40px;gap:6px;align-items:center;margin-bottom:6px;}
+.rider-row input,
+.rider-row select{padding:6px 8px;font-size:.75rem;}
+.rider-num-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:.85rem;cursor:pointer;}
+
+/* ── Stats cards ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px;}
+.stat-card{background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;}
+.stat-val{font-size:1.8rem;font-weight:900;color:var(--blue);}
+.stat-label{font-size:.7rem;color:var(--text-dim);margin-top:4px;}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#000;padding:12px 20px;border-radius:8px;font-size:.85rem;font-weight:bold;z-index:999;display:none;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.toast.show{display:block;animation:slideIn .3s ease;}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* ── Mobile: sidebar collapse ── */
+@media(max-width:600px){
+  .sidebar{width:50px;}
+  .sidebar-item span{display:none;}
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;height:auto;display:flex;flex-direction:row;overflow-x:auto;position:static;border-right:none;border-bottom:1px solid var(--border);}
+  .sidebar-item{padding:10px 12px;border-left:none;border-bottom:3px solid transparent;flex-direction:column;font-size:.6rem;gap:3px;}
+  .sidebar-item.active{border-left-color:transparent;border-bottom-color:var(--blue);}
+  .sidebar-sep{display:none;}
+  .rider-row{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">⚙️ ROOT競輪 管理パネル
+    <span id="role-badge" style="font-size:.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;"></span>
+  </div>
+  <div class="topbar-right">
+    <a href="index.html" target="_blank" class="btn-site">サイトを見る</a>
+    <button class="btn-logout" onclick="doLogout()">ログアウト</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-item active" data-panel="dashboard" onclick="showPanel(this)">📊 <span>ダッシュボード</span></div>
+    <div class="sidebar-item" data-panel="next-race" onclick="showPanel(this)">🏁 <span>NEXT RACE</span></div>
+    <div class="sidebar-item" data-panel="venues" onclick="showPanel(this)">🏟️ <span>会場管理</span></div>
+    <div class="sidebar-item" data-panel="races" onclick="showPanel(this)">📋 <span>レース管理</span></div>
+    <div class="sidebar-item" data-panel="riders" onclick="showPanel(this)">🚴 <span>出走表編集</span></div>
+    <div class="sidebar-item" data-panel="tactics" onclick="showPanel(this)">🏁 <span>展開ボード</span></div>
+    <div class="sidebar-item" data-panel="ai-pred" onclick="showPanel(this)">🤖 <span>AI予想編集</span></div>
+    <div class="sidebar-item" data-panel="ch7" onclick="showPanel(this)" data-main-only>🏆 <span>実力7チャレンジ</span></div>
+    <div class="sidebar-item" data-panel="users" onclick="showPanel(this)" data-main-only>👤 <span>ユーザー管理</span></div>
+    <div class="sidebar-item" data-panel="promos" onclick="showPanel(this)" data-main-only>🎟️ <span>プロモコード</span></div>
+    <div class="sidebar-item" data-panel="notices" onclick="showPanel(this)">📬 <span>お知らせ管理</span></div>
+    <div class="sidebar-item" data-panel="contacts" onclick="showPanel(this)">💬 <span>お問い合わせ</span></div>
+    <div class="sidebar-item" data-panel="bbs" onclick="showPanel(this)">📋 <span>掲示板管理</span></div>
+    <div class="sidebar-item" data-panel="prousers" onclick="showPanel(this)">👥 <span>PRO USER管理</span></div>
+    <hr class="sidebar-sep">
+    <div class="sidebar-item" data-panel="settings" onclick="showPanel(this)" data-main-only>🔧 <span>設定・セキュリティ</span></div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="panel-title">📊 ダッシュボード</div>
+      <div class="stats-row" id="dash-stats">
+        <div class="stat-card"><div class="stat-val" id="stat-nextraces">-</div><div class="stat-label">NEXT RACE数</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-venues">-</div><div class="stat-label">開催会場数</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-races">-</div><div class="stat-label">登録レース数</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-ai">-</div><div class="stat-label">AI予想数</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-scheduled">-</div><div class="stat-label">予約件数</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">ステータス</div>
+        <p style="font-size:.85rem;color:var(--green);">✅ サイト正常稼働中</p>
+        <p style="font-size:.75rem;color:var(--text-dim);margin-top:8px;">最終データ更新: <span id="last-update">-</span></p>
+      </div>
+      <div class="card">
+        <div class="card-title">クイックアクション</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <button class="btn btn-primary" onclick="showPanel(document.querySelector('[data-panel=next-race]'))">NEXT RACE 編集</button>
+          <button class="btn btn-outline" onclick="showPanel(document.querySelector('[data-panel=riders]'))">出走表 編集</button>
+          <button class="btn btn-outline" onclick="showPanel(document.querySelector('[data-panel=ai-pred]'))">AI予想 編集</button>
+          <button class="btn btn-warning btn-sm" onclick="if(confirm('全データをデフォルトに戻しますか？'))resetData()" data-main-only>データリセット</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== NEXT RACE ===== -->
+    <div class="panel" id="panel-next-race">
+      <div class="panel-title">🏁 NEXT RACE 管理
+        <button class="btn btn-primary btn-sm" onclick="addNextRace()">＋ 即時追加</button>
+      </div>
+
+      <!-- 現在のNEXT RACE一覧 -->
+      <div id="next-race-list"></div>
+
+      <!-- 予約投稿フォーム -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-title" style="cursor:pointer;" onclick="toggleSchedForm()">
+          📅 予約投稿
+          <span id="sf-arrow" style="font-size:.7rem;transition:transform .25s;display:inline-block;">▼</span>
+        </div>
+        <div id="sf-wrap" style="display:none;padding-top:4px;">
+          <div class="form-group">
+            <label class="field-label">公開日時</label>
+            <input type="datetime-local" id="sf-datetime" style="width:100%;">
+          </div>
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">会場名</label>
+              <input type="text" id="sf-venue" placeholder="例: 松戸">
+            </div>
+            <div class="form-col">
+              <label class="field-label">レースNo.</label>
+              <input type="number" id="sf-racenum" value="1" min="1" max="12">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">グレード</label>
+              <select id="sf-grade">
+                <option>GP</option><option>G1</option><option>G2</option><option>G3</option>
+                <option selected>F1</option><option>F2</option><option>S級</option><option>A級</option>
+              </select>
+            </div>
+            <div class="form-col">
+              <label class="field-label">カテゴリ</label>
+              <input type="text" id="sf-category" placeholder="例: 予選" value="予選">
+            </div>
+            <div class="form-col">
+              <label class="field-label">締切時刻</label>
+              <input type="text" id="sf-deadline" placeholder="HH:MM">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="field-label">紐付けるレースID</label>
+            <select id="sf-raceid">
+              <option value="">-- 選択 --</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="addScheduledPost()">📅 予約登録する</button>
+        </div>
+      </div>
+
+      <!-- 予約一覧 -->
+      <div class="card" style="margin-top:10px;">
+        <div class="card-title">⏰ 予約一覧</div>
+        <div id="scheduled-list">
+          <div style="color:#888;font-size:.8rem;text-align:center;padding:12px;">予約はありません</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VENUES ===== -->
+    <div class="panel" id="panel-venues">
+      <div class="panel-title">🏟️ 開催会場管理
+        <button class="btn btn-primary btn-sm" onclick="addVenue()">＋ 追加</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>会場名</th><th>グレード</th><th>イベント名</th><th>ステータス</th><th>操作</th></tr></thead>
+          <tbody id="venue-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== RACES ===== -->
+    <div class="panel" id="panel-races">
+      <div class="panel-title">📋 レース管理
+        <button class="btn btn-primary btn-sm" onclick="addRace()">＋ 新規レース</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>レースID</th><th>会場</th><th>R</th><th>グレード</th><th>締切</th><th>操作</th></tr></thead>
+          <tbody id="races-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== RIDERS ===== -->
+    <div class="panel" id="panel-riders">
+      <div class="panel-title">🚴 出走表編集</div>
+      <div class="form-group">
+        <label class="field-label">編集するレースを選択</label>
+        <select id="riders-race-select" onchange="loadRidersEditor()">
+          <option value="">-- レースを選択 --</option>
+        </select>
+      </div>
+      <div id="riders-editor"></div>
+    </div>
+
+    <!-- ===== AI PRED ===== -->
+    <!-- ===== TACTICS BOARD ===== -->
+    <div class="panel" id="panel-tactics">
+      <div class="panel-title">🏁 展開予想ボード 編集</div>
+      <div class="card">
+        <label class="field-label">編集するレースを選択</label>
+        <select id="tactics-race-sel" onchange="loadTacticsEditor()" style="margin-top:4px;"></select>
+      </div>
+      <div id="tactics-editor" style="display:none;">
+        <div class="card">
+          <div class="card-title">プレビュー <span style="font-size:.7rem;font-weight:normal;color:var(--text-dim);">← ゴール方向</span></div>
+          <div id="tactics-preview" style="margin-top:8px;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">ライダー配置</div>
+          <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:12px;">チェックして配置し、コース・位置・加速度を設定してください</div>
+          <div id="tactics-rider-table"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">コメント（任意）</div>
+          <textarea id="tactics-comment" rows="3" placeholder="展開予想のコメントを入力..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="saveTactics()" style="margin-top:4px;">💾 展開ボードを保存する</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-ai-pred">
+      <div class="panel-title">🤖 PRO AI予想 編集</div>
+      <div class="form-group" style="display:flex;align-items:flex-end;gap:10px;">
+        <div style="flex:1;">
+          <label class="field-label">編集するAI予想を選択</label>
+          <select id="ai-select" onchange="loadAiEditor()">
+            <option value="">-- 予想を選択 --</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addAiPred()" style="white-space:nowrap;margin-bottom:1px;">＋ AI予想を追加</button>
+      </div>
+      <div id="ai-editor"></div>
+    </div>
+
+    <!-- ===== CHALLENGE 7 ===== -->
+    <div class="panel" id="panel-ch7">
+      <div class="panel-title">🏆 実力7チャレンジ管理
+        <button class="btn btn-primary btn-sm" onclick="createChallenge7()">＋ 新規チャレンジ</button>
+      </div>
+      <div id="ch7-admin-list">
+        <div style="text-align:center;color:var(--text-dim);padding:20px;font-size:.82rem;">チャレンジがありません</div>
+      </div>
+    </div>
+
+    <!-- ===== USERS ===== -->
+    <div class="panel" id="panel-users">
+      <div class="panel-title">👤 ユーザー管理</div>
+      <div class="card">
+        <div class="card-title">登録済みアカウント一覧</div>
+        <div id="users-list" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- ===== PROMO CODES ===== -->
+    <div class="panel" id="panel-promos">
+      <div class="panel-title">🎟️ プロモコード管理
+        <button class="btn btn-primary btn-sm" onclick="togglePromoForm()" data-main-only>＋ 新規作成</button>
+      </div>
+
+      <!-- 作成フォーム -->
+      <div class="card" id="promo-form" style="display:none;">
+        <div class="card-title">新規プロモコード作成</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+          <div>
+            <label style="font-size:.78rem;color:var(--text-dim);display:block;margin-bottom:4px;">コード（英数字）</label>
+            <input id="pf-code" type="text" class="input-field" placeholder="例: SUMMER2026" style="text-transform:uppercase;">
+          </div>
+          <div>
+            <label style="font-size:.78rem;color:var(--text-dim);display:block;margin-bottom:4px;">最大使用回数（0=無制限）</label>
+            <input id="pf-maxuses" type="number" class="input-field" value="0" min="0">
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:.78rem;color:var(--text-dim);display:block;margin-bottom:6px;">種別</label>
+          <label style="margin-right:20px;cursor:pointer;font-size:.85rem;">
+            <input type="radio" name="pf-type" value="premium_days" checked> PREMIUM日数付与
+          </label>
+          <label style="cursor:pointer;font-size:.85rem;">
+            <input type="radio" name="pf-type" value="add_points"> ポイント追加
+          </label>
+        </div>
+        <div id="pf-premium-row" style="margin-top:12px;">
+          <label style="font-size:.78rem;color:var(--text-dim);display:block;margin-bottom:4px;">付与日数</label>
+          <input id="pf-days" type="number" class="input-field" value="7" min="1" style="max-width:140px;"> 日
+        </div>
+        <div id="pf-points-row" style="margin-top:12px;display:none;">
+          <label style="font-size:.78rem;color:var(--text-dim);display:block;margin-bottom:4px;">付与ポイント</label>
+          <input id="pf-pts" type="number" class="input-field" value="100" min="1" style="max-width:140px;"> pt
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:.78rem;color:var(--text-dim);display:block;margin-bottom:4px;">ラベル（マイページに表示）</label>
+          <input id="pf-label" type="text" class="input-field" placeholder="例: 7日間PREMIUM無料">
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="savePromoCode()">作成</button>
+          <button class="btn btn-outline btn-sm" onclick="togglePromoForm()">キャンセル</button>
+        </div>
+      </div>
+
+      <!-- コード一覧 -->
+      <div id="promo-list"></div>
+    </div>
+
+    <!-- ===== NOTICES ===== -->
+    <div class="panel" id="panel-notices">
+      <div class="panel-title">📬 お知らせ管理</div>
+
+      <div class="card">
+        <div class="card-title">新規お知らせを作成
+          <button class="btn btn-primary btn-sm" onclick="toggleNoticeForm()" data-main-only>＋ 作成</button>
+        </div>
+        <div id="notice-form" style="display:none;margin-top:12px;">
+          <div class="form-group">
+            <label class="field-label">配信タイプ</label>
+            <select id="nf-type" onchange="toggleNoticeTarget()">
+              <option value="broadcast">全体配信</option>
+              <option value="individual">個別配信</option>
+            </select>
+          </div>
+          <div class="form-group" id="nf-target-group" style="display:none;">
+            <label class="field-label">宛先メールアドレス</label>
+            <input type="text" id="nf-target" placeholder="user@example.com">
+          </div>
+          <div class="form-group">
+            <label class="field-label">タイトル</label>
+            <input type="text" id="nf-title" placeholder="お知らせのタイトル">
+          </div>
+          <div class="form-group">
+            <label class="field-label">本文</label>
+            <textarea id="nf-body" rows="5" placeholder="お知らせの本文を入力..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="field-label">💎 pt配布（0 = 配布なし）</label>
+            <input type="number" id="nf-gift-pt" value="0" min="0" step="100"
+              placeholder="例: 500" style="width:160px;">
+            <div style="font-size:.7rem;color:var(--text-dim);margin-top:4px;">
+              ユーザーがお知らせを初回開封したときに自動付与されます。
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="saveNotice()">✓ 送信</button>
+            <button class="btn btn-outline" onclick="toggleNoticeForm()">キャンセル</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">配信済みお知らせ一覧</div>
+        <div id="notices-admin-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== CONTACTS ===== -->
+    <div class="panel" id="panel-contacts">
+      <div class="panel-title">💬 お問い合わせ管理</div>
+      <div class="card">
+        <div class="card-title">受信したお問い合わせ</div>
+        <div id="contacts-admin-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== BBS ===== -->
+    <div class="panel" id="panel-bbs">
+      <div class="panel-title">📋 掲示板管理</div>
+      <div class="card">
+        <div class="card-title">
+          レース別投稿一覧
+          <button class="btn btn-sm btn-outline" onclick="renderBBSAdmin()">🔄 更新</button>
+        </div>
+        <div id="bbs-admin-content"></div>
+      </div>
+    </div>
+
+    <!-- ===== PRO USER管理 ===== -->
+    <div class="panel" id="panel-prousers">
+      <div class="panel-title">👥 PRO USER管理
+        <button class="btn btn-primary btn-sm" onclick="openProUserModal(-1)" data-main-only>＋ 新規登録</button>
+      </div>
+      <div class="card" style="margin-bottom:12px;font-size:.78rem;color:var(--text-dim);line-height:1.8;">
+        PRO USER専用ポータルURL: <code style="background:var(--dark3);padding:2px 8px;border-radius:4px;color:#58a6ff;">prouser-panel.html</code>
+      </div>
+      <div id="pu-admin-list"></div>
+
+      <!-- PRO USER投稿一覧 & 変更履歴 -->
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          📋 PRO USER投稿一覧 &amp; 変更履歴
+          <button class="btn btn-sm" style="font-size:.72rem;background:var(--dark3);color:var(--text-dim);border:1px solid var(--border);" onclick="renderPuPredictions()">更新</button>
+        </div>
+        <div id="pu-pred-log"><div style="color:var(--text-dim);font-size:.8rem;padding:10px;">読み込み中...</div></div>
+      </div>
+
+      <!-- 出金申請管理 -->
+      <div class="card" style="margin-top:16px;" data-main-only>
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          💸 出金申請管理
+          <button class="btn btn-sm" style="font-size:.72rem;background:var(--dark3);color:var(--text-dim);border:1px solid var(--border);" onclick="renderWithdrawalAdmin()">更新</button>
+        </div>
+        <div id="wd-admin-list"><div style="color:var(--text-dim);font-size:.8rem;padding:10px;">読み込み中...</div></div>
+      </div>
+
+      <!-- グレード制度表 -->
+      <div class="card" style="margin-top:16px;" data-main-only>
+        <div class="card-title">🏅 グレード制度一覧</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+            <thead>
+              <tr style="background:var(--dark3);color:var(--text-dim);">
+                <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);">グレード</th>
+                <th style="padding:8px 12px;text-align:center;border-bottom:1px solid var(--border);">PT還元率</th>
+                <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);">昇格条件</th>
+                <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);">降格・除外条件</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 12px;"><span style="background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;font-weight:bold;padding:2px 10px;border-radius:4px;font-size:.75rem;">S級</span></td>
+                <td style="padding:10px 12px;text-align:center;font-weight:bold;color:#a78bfa;">60%</td>
+                <td style="padding:10px 12px;color:var(--text-dim);font-size:.72rem;">—</td>
+                <td style="padding:10px 12px;color:#f85149;font-size:.72rem;">月間売上 100,000pt 未満 → A級へ降格</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 12px;"><span style="background:linear-gradient(135deg,#fbbf24,#d97706);color:#fff;font-weight:bold;padding:2px 10px;border-radius:4px;font-size:.75rem;">A級</span></td>
+                <td style="padding:10px 12px;text-align:center;font-weight:bold;color:#fbbf24;">55%</td>
+                <td style="padding:10px 12px;color:#3fb950;font-size:.72rem;">月間売上 100,000pt 以上 → S級へ昇格</td>
+                <td style="padding:10px 12px;color:#f85149;font-size:.72rem;">月間売上 10,000pt 未満 → B級へ降格</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 12px;"><span style="background:linear-gradient(135deg,#60a5fa,#2563eb);color:#fff;font-weight:bold;padding:2px 10px;border-radius:4px;font-size:.75rem;">B級</span></td>
+                <td style="padding:10px 12px;text-align:center;font-weight:bold;color:#60a5fa;">50%</td>
+                <td style="padding:10px 12px;color:#3fb950;font-size:.72rem;">月間売上 10,000pt 以上 → A級へ昇格</td>
+                <td style="padding:10px 12px;color:#f85149;font-size:.72rem;">毎月30投稿未満 または 月間売上 0pt → PRO除外</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px;"><span style="background:linear-gradient(135deg,#6b7280,#374151);color:#fff;font-weight:bold;padding:2px 10px;border-radius:4px;font-size:.75rem;">新人</span></td>
+                <td style="padding:10px 12px;text-align:center;font-weight:bold;color:#9ca3af;">40%</td>
+                <td style="padding:10px 12px;color:#3fb950;font-size:.72rem;">累計 100投稿 以上 → B級へ昇格</td>
+                <td style="padding:10px 12px;color:#f85149;font-size:.72rem;">毎月30投稿未満 または 月間売上 0pt → PRO除外</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:8px 4px 2px;font-size:.68rem;color:var(--text-dim);line-height:1.7;margin-top:6px;">
+          ※ グレードの昇格・降格は管理者が月次で手動適用（グレード欄のドロップダウンから変更）してください。<br>
+          ※ PT現金還元率はPRO USER専用ポータルにも表示されます。
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div class="panel" id="panel-settings">
+      <div class="panel-title">🔧 設定・セキュリティ</div>
+
+      <div class="card">
+        <div class="card-title">管理者ID変更</div>
+        <div class="form-group">
+          <label class="field-label">現在の管理者ID</label>
+          <input type="text" id="current-admin-id" readonly style="color:var(--text-dim);">
+        </div>
+        <div class="form-group">
+          <label class="field-label">新しい管理者ID</label>
+          <input type="text" id="new-admin-id" placeholder="新しいIDを入力">
+        </div>
+        <button class="btn btn-primary" onclick="changeAdminId()">IDを変更</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">パスワード変更</div>
+        <div class="form-group">
+          <label class="field-label">現在のパスワード</label>
+          <input type="password" id="current-pw" placeholder="現在のパスワード">
+        </div>
+        <div class="form-group">
+          <label class="field-label">新しいパスワード（8文字以上）</label>
+          <input type="password" id="new-pw" placeholder="新しいパスワード">
+        </div>
+        <div class="form-group">
+          <label class="field-label">新しいパスワード（確認）</label>
+          <input type="password" id="new-pw2" placeholder="確認入力">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()">パスワードを変更</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">サブ管理者 設定</div>
+        <div class="form-group">
+          <label class="field-label">現在のサブ管理者ID</label>
+          <input type="text" id="current-sub-id" readonly style="color:var(--text-dim);">
+        </div>
+        <div class="form-group">
+          <label class="field-label">新しいサブ管理者ID（4文字以上）</label>
+          <input type="text" id="new-sub-id" placeholder="新しいIDを入力">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="changeSubAdminId()" style="margin-bottom:16px;">IDを変更</button>
+        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:16px;">
+        <div class="form-group">
+          <label class="field-label">新しいパスワード（8文字以上）</label>
+          <input type="password" id="new-sub-pw" placeholder="新しいパスワード">
+        </div>
+        <div class="form-group">
+          <label class="field-label">新しいパスワード（確認）</label>
+          <input type="password" id="new-sub-pw2" placeholder="確認入力">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="changeSubAdminPassword()">パスワードを変更</button>
+      </div>
+
+      <!-- 2段階認証 TOTP設定（メイン管理者のみ） -->
+      <div class="card" data-main-only>
+        <div class="card-title">🔑 2段階認証（TOTP）設定</div>
+        <div id="totp-status-area"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">セキュリティ情報</div>
+        <p style="font-size:.8rem;line-height:1.7;color:var(--text-dim);">
+          ■ 管理者ログインURL: <code style="background:var(--dark3);padding:2px 6px;border-radius:4px;">admin-r9x2k.html</code><br>
+          ■ ロックアウト: ログイン失敗5回で15分間ロック<br>
+          ■ セッション: ブラウザ終了で自動ログアウト<br>
+          ■ パスワード: SHA-256ハッシュで保存<br>
+          ■ noindex設定: 検索エンジンに非表示
+        </p>
+      </div>
+
+      <!-- EmailJS設定 -->
+      <div class="card">
+        <div class="card-title">📧 EmailJS 設定（メール認証・パスワードリセット）</div>
+        <p style="font-size:.78rem;color:var(--text-dim);line-height:1.7;margin-bottom:14px;">
+          <a href="https://www.emailjs.com/" target="_blank" style="color:#58a6ff;">EmailJS</a> を利用してメール認証・パスワードリセットメールを送信します。<br>
+          EmailJSに登録し、Service・Template・Public Keyを取得して設定してください。
+        </p>
+        <div class="form-group">
+          <label class="field-label">Service ID</label>
+          <input type="text" id="ejs-service-id" placeholder="service_xxxxxxx">
+        </div>
+        <div class="form-group">
+          <label class="field-label">メール認証テンプレート ID</label>
+          <input type="text" id="ejs-verify-template" placeholder="template_xxxxxxx">
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:3px;">テンプレート変数: {{to_email}} {{verify_url}} {{user_name}}</div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">パスワードリセットテンプレート ID</label>
+          <input type="text" id="ejs-reset-template" placeholder="template_xxxxxxx">
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:3px;">テンプレート変数: {{to_email}} {{reset_url}}</div>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Public Key（User ID）</label>
+          <input type="text" id="ejs-public-key" placeholder="XXXXXXXXXXXXXXXXXXXX">
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="saveEmailJSConfig()">保存</button>
+          <button class="btn btn-outline btn-sm" onclick="testEmailJS()">テスト送信</button>
+          <input type="email" id="ejs-test-email" placeholder="テスト先メール" style="flex:1;min-width:160px;max-width:220px;font-size:.82rem;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--dark3);color:var(--text);">
+        </div>
+        <div id="ejs-status" style="display:none;margin-top:10px;font-size:.78rem;border-radius:6px;padding:8px 12px;"></div>
+      </div>
+
+      <!-- 完全バックアップ -->
+      <div class="card">
+        <div class="card-title">💾 完全バックアップ / 復元</div>
+        <p style="font-size:.78rem;color:var(--text-dim);line-height:1.7;margin-bottom:12px;">
+          ブラウザ内の全データ（売上ログ・PRO USER・出金履歴・管理設定など）を<br>
+          JSONファイルに保存・読み込みできます。コード変更前に必ずバックアップを取ってください。
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="fullBackup()">⬇ 全データをバックアップ</button>
+          <button class="btn btn-outline" onclick="fullRestore()">⬆ バックアップから復元</button>
+        </div>
+        <div id="backup-status" style="display:none;margin-top:10px;font-size:.78rem;padding:8px 12px;border-radius:6px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:var(--red);">危険ゾーン</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-danger" onclick="if(confirm('全データをデフォルトに戻しますか？この操作は取り消せません。'))resetData()">全データリセット</button>
+          <button class="btn btn-danger" onclick="resetAllUsers()">全ユーザー初期化</button>
+          <button class="btn btn-outline" onclick="exportData()">データエクスポート</button>
+          <button class="btn btn-outline" onclick="importData()">データインポート</button>
+        </div>
+        <div style="margin-top:8px;font-size:.75rem;color:var(--text-dim);">「全ユーザー初期化」は登録済みアカウント・お問い合わせ履歴をすべて削除します。アプリデータ（レース・お知らせ等）は保持されます。</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* ── 認証チェック ── */
+if (!RK.isAdminLoggedIn() && !RK.isSubAdminLoggedIn()) {
+  location.href = 'admin-r9x2k.html';
+}
+const IS_MAIN = RK.getAdminRole() === 'main';
+
+let currentData = RK.getData();
+
+/* ── ユーティリティ ── */
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = type === 'success' ? '#3fb950' : '#f85149';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+function save() {
+  RK.saveData(currentData);
+  localStorage.setItem('rk_lastUpdate', new Date().toLocaleString('ja-JP'));
+  toast('✓ 保存しました');
+  refreshDashboard();
+}
+function bikeStyle(num) {
+  const c = RK.bikeColors[num] || {bg:'#333',text:'#fff',border:'#555'};
+  return `style="background:${c.bg};color:${c.text};border:2px solid ${c.border};"`;
+}
+
+/* ── パネル切り替え ── */
+const SUB_BLOCKED_PANELS = ['ch7', 'settings', 'promos', 'users'];
+function showPanel(el) {
+  if (!el) return;
+  const panelName = el.dataset.panel;
+  if (!IS_MAIN && SUB_BLOCKED_PANELS.includes(panelName)) {
+    toast('この機能はメイン管理者のみ操作できます', 'error');
+    return;
+  }
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + panelName).classList.add('active');
+  onPanelOpen(panelName);
+}
+
+function onPanelOpen(name) {
+  if (name === 'dashboard')  renderDashboard();
+  if (name === 'next-race')  { renderNextRace(); renderScheduled(); }
+  if (name === 'venues')     renderVenues();
+  if (name === 'races')      renderRaces();
+  if (name === 'riders')     populateRiderSelect();
+  if (name === 'tactics')    populateTacticsSelect();
+  if (name === 'ai-pred')    populateAiSelect();
+  if (name === 'ch7')        renderChallenge7Admin();
+  if (name === 'users')      renderUsersAdmin();
+  if (name === 'promos')     renderPromosAdmin();
+  if (name === 'notices')    renderNoticesAdmin();
+  if (name === 'contacts')   renderContactsAdmin();
+  if (name === 'bbs')        renderBBSAdmin();
+  if (name === 'prousers')   renderProUsersAdmin();
+  if (name === 'settings')   renderSettings();
+}
+
+/* ── Dashboard ── */
+function refreshDashboard() {
+  currentData = RK.getData();
+  document.getElementById('stat-nextraces').textContent = currentData.nextRaces.length;
+  document.getElementById('stat-venues').textContent    = currentData.venues.length;
+  document.getElementById('stat-races').textContent     = Object.keys(currentData.races).length;
+  document.getElementById('stat-ai').textContent        = currentData.proAiPredictions.length;
+  const pendingSched = RK.getScheduledTasks().filter(t => t.status === 'pending').length;
+  document.getElementById('stat-scheduled').textContent = pendingSched;
+  document.getElementById('last-update').textContent    = localStorage.getItem('rk_lastUpdate') || '未更新';
+}
+function renderDashboard() { refreshDashboard(); }
+
+/* ── NEXT RACE ── */
+function renderNextRace() {
+  currentData = RK.getData();
+  const el = document.getElementById('next-race-list');
+  if (currentData.nextRaces.length === 0) {
+    el.innerHTML = '<div style="color:#888;font-size:.82rem;text-align:center;padding:16px;">NEXT RACEはありません</div>';
+    return;
+  }
+  el.innerHTML = currentData.nextRaces.map((r, i) => `
+    <div class="card" id="nr-${i}">
+      <div class="card-title">NEXT RACE #${i+1}
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" style="background:#2d333b;color:#ccc;border:1px solid #444;"
+            onclick="toggleDelSched(${i})">⏰ 予約削除</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteNextRace(${i})">即時削除</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="field-label">会場名</label>
+          <input type="text" value="${r.venue}" onchange="updateNextRace(${i},'venue',this.value)">
+        </div>
+        <div class="form-col">
+          <label class="field-label">レースNo.</label>
+          <input type="number" value="${r.raceNum}" min="1" max="12" onchange="updateNextRace(${i},'raceNum',+this.value)">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="field-label">グレード</label>
+          <select onchange="updateNextRace(${i},'grade',this.value)">
+            ${['GP','G1','G2','G3','F1','F2','S級','A級'].map(g=>`<option ${r.grade===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-col">
+          <label class="field-label">カテゴリ</label>
+          <input type="text" value="${r.category}" onchange="updateNextRace(${i},'category',this.value)">
+        </div>
+        <div class="form-col">
+          <label class="field-label">締切時刻</label>
+          <input type="text" value="${r.deadline}" placeholder="HH:MM" onchange="updateNextRace(${i},'deadline',this.value)">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">紐付けるレースID</label>
+        <select onchange="updateNextRace(${i},'id',this.value)">
+          <option value="">-- 選択 --</option>
+          ${Object.keys(currentData.races).map(k=>`<option value="${k}" ${r.id===k?'selected':''}>${k}</option>`).join('')}
+        </select>
+      </div>
+      <!-- 予約削除パネル（トグル） -->
+      <div id="del-sched-${i}" style="display:none;margin-top:10px;background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:12px;">
+        <div style="font-size:.75rem;font-weight:bold;color:#f85149;margin-bottom:8px;">⏰ 予約削除 — 自動削除する日時を指定</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="datetime-local" id="ds-dt-${i}" style="flex:1;">
+          <button class="btn btn-danger btn-sm"
+            onclick="confirmScheduleDelete(${i},'${r.id}','${escJs(r.venue)}',${r.raceNum})">予約する</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function updateNextRace(i, field, val) {
+  currentData = RK.getData();
+  currentData.nextRaces[i][field] = val;
+  save();
+}
+function addNextRace() {
+  currentData = RK.getData();
+  currentData.nextRaces.push({ id:'', venue:'新会場', raceNum:1, grade:'F1', category:'予選', deadline:'12:00' });
+  save(); renderNextRace();
+}
+function deleteNextRace(i) {
+  currentData = RK.getData();
+  const raceId = currentData.nextRaces[i]?.id;
+  const hasLinked = raceId && currentData.races?.[raceId];
+  const confirmMsg = hasLinked
+    ? `NEXT RACE #${i+1} を削除します。\n紐付けレースID「${raceId}」の展開予想・PRO USER予想・掲示板投稿も全て削除されます。\nよろしいですか？`
+    : '即時削除しますか？';
+  if (!confirm(confirmMsg)) return;
+
+  /* 紐付けデータを全削除 */
+  if (raceId) {
+    /* races（展開予想・PRO USER予想を含む）を削除 */
+    if (currentData.races) delete currentData.races[raceId];
+    /* BBS投稿を削除 */
+    RK.deleteBBSMessages(raceId);
+    /* BBS既読タイムスタンプを削除 */
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('rk_bbs_' + raceId + '_last_'))
+      .forEach(k => localStorage.removeItem(k));
+  }
+
+  currentData.nextRaces.splice(i, 1);
+  save(); renderNextRace();
+}
+
+/* ── 予約削除パネルのトグル ── */
+function toggleDelSched(i) {
+  const el = document.getElementById('del-sched-' + i);
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    /* デフォルト: 1時間後 */
+    const dt = new Date(Date.now() + 3600000);
+    document.getElementById('ds-dt-' + i).value = localDtStr(dt);
+  }
+}
+
+function confirmScheduleDelete(i, raceId, venue, raceNum) {
+  const dt = document.getElementById('ds-dt-' + i).value;
+  if (!dt) { toast('削除日時を設定してください', 'error'); return; }
+  const dtDisp = dt.replace('T', ' ');
+  if (!confirm(`${venue} ${raceNum}R を\n${dtDisp} に自動削除しますか？`)) return;
+  RK.addScheduledTask({
+    type:        'delete_next_race',
+    executeAt:   dt,
+    targetId:    raceId,
+    targetVenue: venue,
+    label:       `${venue} ${raceNum}R 削除`
+  });
+  toast('✓ 予約削除を登録しました');
+  document.getElementById('del-sched-' + i).style.display = 'none';
+  renderScheduled();
+}
+
+/* ── 予約投稿フォームのトグル ── */
+function toggleSchedForm() {
+  const wrap  = document.getElementById('sf-wrap');
+  const arrow = document.getElementById('sf-arrow');
+  const isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+  if (!isOpen) {
+    /* デフォルト公開日時: 1時間後 */
+    document.getElementById('sf-datetime').value = localDtStr(new Date(Date.now() + 3600000));
+    /* レースIDセレクトを更新 */
+    currentData = RK.getData();
+    document.getElementById('sf-raceid').innerHTML =
+      '<option value="">-- 選択 --</option>' +
+      Object.keys(currentData.races).map(k => `<option value="${k}">${k}</option>`).join('');
+  }
+}
+
+function addScheduledPost() {
+  const dt       = document.getElementById('sf-datetime').value;
+  const venue    = document.getElementById('sf-venue').value.trim();
+  const raceNum  = parseInt(document.getElementById('sf-racenum').value) || 1;
+  const grade    = document.getElementById('sf-grade').value;
+  const category = document.getElementById('sf-category').value.trim();
+  const deadline = document.getElementById('sf-deadline').value.trim();
+  const raceId   = document.getElementById('sf-raceid').value;
+
+  if (!dt)       { toast('公開日時を設定してください', 'error'); return; }
+  if (!venue)    { toast('会場名を入力してください', 'error'); return; }
+  if (!deadline) { toast('締切時刻を入力してください', 'error'); return; }
+
+  RK.addScheduledTask({
+    type:      'add_next_race',
+    executeAt: dt,
+    label:     `${venue} ${raceNum}R 公開`,
+    data:      { id: raceId, venue, raceNum, grade, category, deadline }
+  });
+  toast('✓ 予約投稿を登録しました');
+  renderScheduled();
+  /* フォームをリセット */
+  document.getElementById('sf-venue').value    = '';
+  document.getElementById('sf-deadline').value = '';
+  document.getElementById('sf-raceid').value   = '';
+}
+
+/* ── 予約一覧レンダリング ── */
+function renderScheduled() {
+  const el = document.getElementById('scheduled-list');
+  if (!el) return;
+  const tasks = RK.getScheduledTasks().filter(t => t.status === 'pending')
+                  .sort((a, b) => a.executeAt.localeCompare(b.executeAt));
+  if (tasks.length === 0) {
+    el.innerHTML = '<div style="color:#888;font-size:.8rem;text-align:center;padding:12px;">予約はありません</div>';
+    return;
+  }
+  el.innerHTML = tasks.map(t => {
+    const isAdd     = t.type === 'add_next_race';
+    const color     = isAdd ? '#3fb950' : '#f85149';
+    const icon      = isAdd ? '📅' : '🗑️';
+    const typeLabel = isAdd ? '予約投稿' : '予約削除';
+    const dtDisp    = t.executeAt.replace('T', ' ');
+    const sid       = t.id; /* sched_XXXXXXXXXX — アンダースコアと数字のみなのでIDに安全 */
+
+    /* 予約投稿タスクのみ「予約削除を追加」セクションを表示 */
+    const delSection = isAdd ? `
+      <div id="pds-${sid}" style="display:none;margin-top:8px;
+           background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);
+           border-radius:6px;padding:10px;">
+        <div style="font-size:.72rem;font-weight:bold;color:#f85149;margin-bottom:6px;">
+          ⏰ この投稿の予約削除を設定
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="datetime-local" id="pds-dt-${sid}" style="flex:1;font-size:.78rem;">
+          <button class="btn btn-danger btn-sm"
+            onclick="confirmDelSchedForPost('${sid}','${escJs(t.data.id)}','${escJs(t.data.venue)}',${t.data.raceNum})">
+            予約する
+          </button>
+        </div>
+      </div>` : '';
+
+    return `
+      <div style="padding:10px 12px;border-radius:8px;margin-bottom:8px;
+                  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:.78rem;font-weight:bold;color:${color};">${icon} ${typeLabel}</div>
+            <div style="font-size:.82rem;color:#ccc;margin:2px 0;word-break:break-all;">${escAdm(t.label)}</div>
+            <div style="font-size:.7rem;color:#666;">実行予定: ${dtDisp}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+            ${isAdd ? `<button class="btn btn-sm"
+                style="background:#2d333b;color:#ccc;border:1px solid #444;font-size:.7rem;"
+                onclick="togglePostDelSched('${sid}')">⏰ 予約削除</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="cancelScheduled('${t.id}')">取消</button>
+          </div>
+        </div>
+        ${delSection}
+      </div>`;
+  }).join('');
+}
+
+function cancelScheduled(taskId) {
+  if (!confirm('この予約を取り消しますか？')) return;
+  RK.deleteScheduledTask(taskId);
+  toast('✓ 予約を取り消しました');
+  renderScheduled();
+}
+
+/* ── 予約投稿からの予約削除パネルトグル ── */
+function togglePostDelSched(sid) {
+  const el = document.getElementById('pds-' + sid);
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    /* デフォルト: この投稿の実行時刻 + 1時間 */
+    const tasks   = RK.getScheduledTasks();
+    const task    = tasks.find(t => t.id === sid);
+    const baseMs  = task ? new Date(task.executeAt).getTime() : Date.now();
+    document.getElementById('pds-dt-' + sid).value =
+      localDtStr(new Date(Math.max(baseMs, Date.now()) + 3600000));
+  }
+}
+
+function confirmDelSchedForPost(sid, raceId, venue, raceNum) {
+  const dt = document.getElementById('pds-dt-' + sid).value;
+  if (!dt) { toast('削除日時を設定してください', 'error'); return; }
+
+  /* 対応する予約投稿タスクの実行日時を取得して比較 */
+  const tasks    = RK.getScheduledTasks();
+  const postTask = tasks.find(t => t.id === sid);
+  if (postTask && dt <= postTask.executeAt) {
+    toast('削除日時は投稿日時より後に設定してください', 'error'); return;
+  }
+
+  const dtDisp = dt.replace('T', ' ');
+  if (!confirm(`${venue} ${raceNum}R を\n${dtDisp} に自動削除しますか？`)) return;
+
+  RK.addScheduledTask({
+    type:        'delete_next_race',
+    executeAt:   dt,
+    targetId:    raceId,
+    targetVenue: venue,
+    label:       `${venue} ${raceNum}R 削除`
+  });
+  toast('✓ 予約削除を登録しました');
+  document.getElementById('pds-' + sid).style.display = 'none';
+  renderScheduled();
+}
+
+/* ── datetime-local 用ローカル時刻文字列 ── */
+function localDtStr(date) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/* ── JS文字列内エスケープ ── */
+function escJs(s) { return String(s).replace(/'/g, "\\'"); }
+
+/* ── VENUES ── */
+function renderVenues() {
+  currentData = RK.getData();
+  const tb = document.getElementById('venue-tbody');
+  tb.innerHTML = currentData.venues.map((v, i) => `
+    <tr>
+      <td><input type="text" value="${v.name}" style="width:70px" onblur="updateVenue(${i},'name',this.value)"></td>
+      <td><select onchange="updateVenue(${i},'grade',this.value)">
+        ${['GP','G1','G2','G3','F1','F2'].map(g=>`<option ${v.grade===g?'selected':''}>${g}</option>`).join('')}
+      </select></td>
+      <td><input type="text" value="${v.event}" onblur="updateVenue(${i},'event',this.value)"></td>
+      <td><select onchange="updateVenue(${i},'status',this.value)">
+        ${['開催中','開催予定','終了'].map(s=>`<option ${v.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteVenue(${i})">削除</button></td>
+    </tr>`).join('');
+}
+function updateVenue(i, f, v) { currentData = RK.getData(); currentData.venues[i][f] = v; save(); }
+function addVenue() {
+  currentData = RK.getData();
+  currentData.venues.push({ id:'new_'+Date.now(), name:'新会場', grade:'F1', event:'予選', status:'開催予定' });
+  save(); renderVenues();
+}
+function deleteVenue(i) {
+  if (!confirm('削除しますか？')) return;
+  currentData = RK.getData(); currentData.venues.splice(i,1); save(); renderVenues();
+}
+
+/* ── RACES ── */
+function renderRaces() {
+  currentData = RK.getData();
+  const tb = document.getElementById('races-tbody');
+  tb.innerHTML = Object.entries(currentData.races).map(([id, r]) => `
+    <tr>
+      <td><code style="font-size:.72rem;color:#58a6ff;">${id}</code></td>
+      <td>${r.venue}</td>
+      <td>${r.raceNum}R</td>
+      <td><span class="badge badge-blue">${r.grade}</span></td>
+      <td>${r.deadline}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editRaceBasic('${id}')">編集</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteRace('${id}')">削除</button>
+      </td>
+    </tr>`).join('');
+}
+function addRace() {
+  const id = prompt('新しいレースIDを入力（例: osaka_5R）');
+  if (!id) return;
+  currentData = RK.getData();
+  if (currentData.races[id]) { alert('そのIDは既に存在します'); return; }
+  currentData.races[id] = {
+    venue:'新会場', raceNum:1, grade:'F1', category:'予選',
+    deadline:'12:00', distance:'1800m',
+    riders:[], freePrediction:'', aiProPrediction:'', tactics:{lead:[],midField:[],chase:[]}
+  };
+  save(); renderRaces();
+}
+function deleteRace(id) {
+  if (!confirm(`レース "${id}" を削除しますか？`)) return;
+  currentData = RK.getData(); delete currentData.races[id]; save(); renderRaces();
+}
+function editRaceBasic(id) {
+  const r = currentData.races[id];
+  const modal = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:20px;width:100%;max-width:420px;">
+        <h3 style="margin-bottom:14px;">レース基本情報: ${id}</h3>
+        <div class="form-row">
+          <div class="form-col"><label class="field-label">会場</label><input id="e-venue" type="text" value="${r.venue}"></div>
+          <div class="form-col"><label class="field-label">R番号</label><input id="e-rnum" type="number" value="${r.raceNum}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-col"><label class="field-label">グレード</label><input id="e-grade" type="text" value="${r.grade}"></div>
+          <div class="form-col"><label class="field-label">カテゴリ</label><input id="e-cat" type="text" value="${r.category}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-col"><label class="field-label">締切</label><input id="e-dead" type="text" value="${r.deadline}"></div>
+          <div class="form-col"><label class="field-label">距離</label><input id="e-dist" type="text" value="${r.distance}"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <button class="btn btn-primary" onclick="saveRaceBasic('${id}')">保存</button>
+          <button class="btn btn-outline" onclick="document.getElementById('race-modal').remove()">キャンセル</button>
+        </div>
+      </div>
+    </div>`;
+  const div = document.createElement('div');
+  div.id = 'race-modal'; div.innerHTML = modal;
+  document.body.appendChild(div);
+}
+function saveRaceBasic(id) {
+  currentData = RK.getData();
+  currentData.races[id].venue    = document.getElementById('e-venue').value;
+  currentData.races[id].raceNum  = +document.getElementById('e-rnum').value;
+  currentData.races[id].grade    = document.getElementById('e-grade').value;
+  currentData.races[id].category = document.getElementById('e-cat').value;
+  currentData.races[id].deadline = document.getElementById('e-dead').value;
+  currentData.races[id].distance = document.getElementById('e-dist').value;
+  save(); renderRaces();
+  document.getElementById('race-modal')?.remove();
+}
+
+/* ── RIDERS EDITOR ── */
+function populateRiderSelect() {
+  currentData = RK.getData();
+  const sel = document.getElementById('riders-race-select');
+  sel.innerHTML = '<option value="">-- レースを選択 --</option>'
+    + Object.keys(currentData.races).map(k=>`<option value="${k}">${currentData.races[k].venue} ${currentData.races[k].raceNum}R (${k})</option>`).join('');
+}
+function loadRidersEditor() {
+  const raceId = document.getElementById('riders-race-select').value;
+  if (!raceId) { document.getElementById('riders-editor').innerHTML=''; return; }
+  currentData = RK.getData();
+  const race = currentData.races[raceId];
+  const lp = race.linePrediction || { groups: [], comment: '' };
+
+  /* ── ライン予想テキスト生成（表示用）── */
+  const lpText = lp.groups.map(g => g.join('-')).join(' / ');
+
+  /* ── 選手ごとの行（新8フィールド対応）── */
+  const ridersHtml = race.riders.map((r, i) => {
+    const markOpts = ['◎','○','▲','△','✕',''].map(m =>
+      `<option value="${m}" ${r.mark===m?'selected':''}>${m||'（なし）'}</option>`).join('');
+    return `
+    <tr id="rr-${i}">
+      <td>
+        <span class="rider-num-badge" ${bikeStyle(r.num)} style="display:inline-flex;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;border:2px solid;">${r.num}</span>
+      </td>
+      <td>
+        <select style="width:52px;padding:4px 2px;" onchange="updateRider('${raceId}',${i},'mark',this.value)">${markOpts}</select>
+      </td>
+      <td><input type="text" value="${r.name}" placeholder="選手名" style="min-width:90px;" onblur="updateRider('${raceId}',${i},'name',this.value)"></td>
+      <td><input type="text" value="${r.pref||''}" placeholder="都道府県" style="width:70px;" onblur="updateRider('${raceId}',${i},'pref',this.value)"></td>
+      <td><input type="text" value="${r.kiki||''}" placeholder="期別" style="width:55px;" onblur="updateRider('${raceId}',${i},'kiki',this.value)"></td>
+      <td>
+        <select style="width:52px;padding:4px 2px;" onchange="updateRider('${raceId}',${i},'rank',this.value)">
+          ${['SS','S1','S2','A1','A2','A3'].map(v=>`<option ${r.rank===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="number" value="${r.score!=null?r.score:''}" placeholder="得点" step="0.1" min="0" max="200" style="width:65px;" onblur="updateRider('${raceId}',${i},'score',parseFloat(this.value)||0)"></td>
+      <td>
+        <select style="width:52px;padding:4px 2px;" onchange="updateRider('${raceId}',${i},'style',this.value)">
+          ${['逃げ','先行','追込','捲り'].map(v=>`<option ${r.style===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="text" value="${r.results||''}" placeholder="1-2-3-4-5" style="width:80px;" onblur="updateRider('${raceId}',${i},'results',this.value)"></td>
+      <td><input type="number" value="${r.rootScore!=null?r.rootScore:''}" placeholder="0-100" min="0" max="100" style="width:58px;" onblur="updateRider('${raceId}',${i},'rootScore',parseInt(this.value)||0)"></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRider('${raceId}',${i})">×</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('riders-editor').innerHTML = `
+    <!-- ── ライン予想カード ── -->
+    <div class="card">
+      <div class="card-title">ライン予想
+        <button class="btn btn-primary btn-sm" onclick="saveLinePred('${raceId}')">✓ 保存</button>
+      </div>
+      <div class="form-group">
+        <label class="field-label">ラインのグループ設定（車番をカンマ区切り、ライン間はスラッシュ「/」で区切る）</label>
+        <input type="text" id="line-groups" value="${lpText}" placeholder="例: 1,2 / 5,8,6 / 3,7,4,9">
+        <div style="font-size:.68rem;color:var(--text-dim);margin-top:4px;">
+          例：「1,2 / 5,8,6 / 3,7,4,9」→ ①-② ライン / ⑤-⑧-⑥ ライン / ③⑦④⑨ マーク
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">ライン予想コメント</label>
+        <textarea id="line-comment" rows="3" placeholder="ライン予想の解説コメント...">${lp.comment||''}</textarea>
+      </div>
+    </div>
+
+    <!-- ── 出走表カード ── -->
+    <div class="card">
+      <div class="card-title">${race.venue} ${race.raceNum}R — 出走表（${race.riders.length}車）
+        <button class="btn btn-primary btn-sm" onclick="addRider('${raceId}')">＋ 選手追加</button>
+      </div>
+      <div style="font-size:.68rem;color:var(--text-dim);margin-bottom:10px;line-height:1.6;">
+        表示順：予想印 / 選手名 / 都道府県 / 期別 / 級班 / 競走得点 / 戦法 / 近走成績 / ROOT独自点数
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:.75rem;min-width:700px;">
+          <thead>
+            <tr style="background:var(--dark3);">
+              <th style="padding:6px 4px;text-align:center;font-size:.65rem;color:var(--text-dim);">車番</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">予想印</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">選手名</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">都道府県</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">期別</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">級班</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">競走得点</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">戦法</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">近走成績</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);">ROOT点</th>
+              <th style="padding:6px 4px;font-size:.65rem;color:var(--text-dim);"></th>
+            </tr>
+          </thead>
+          <tbody id="riders-list">${ridersHtml}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 無料予想コメント ── -->
+    <div class="card">
+      <div class="card-title">無料展開予想コメント
+        <button class="btn btn-primary btn-sm" onclick="updateFreePred('${raceId}')">✓ 保存</button>
+      </div>
+      <textarea id="free-pred" rows="5">${race.freePrediction||''}</textarea>
+    </div>
+
+    <!-- ── PRO AI予想テキスト ── -->
+    <div class="card">
+      <div class="card-title">🤖 PRO AI予想テキスト（PREMIUM限定）
+        <button class="btn btn-primary btn-sm" onclick="updateAiPredText('${raceId}')">✓ 保存</button>
+      </div>
+      <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:8px;">PREMIUM会員のみに表示される詳細AI分析レポートです。</p>
+      <textarea id="ai-pred-text" rows="6">${race.aiProPrediction||''}</textarea>
+    </div>
+
+    <!-- ── PRO USER予想 管理 ── -->
+    <div class="card">
+      <div class="card-title">👥 PRO USER予想 管理
+        <button class="btn btn-primary btn-sm" onclick="addUserPred('${raceId}')">＋ 予想を追加</button>
+      </div>
+      <div style="background:rgba(31,111,235,.1);border:1px solid rgba(31,111,235,.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:.72rem;color:#8b949e;line-height:1.7;">
+        ⚠️ <strong style="color:#c9d1d9;">PRO USER予想は有料コンテンツです。</strong><br>
+        ROOT競輪が認定した予想師のみが登録できます。ユーザーはROOT POINTを消費して購入します（1pt = 1円で購入可能）。PREMIUM会員は毎月1,000ptが進呈されます。
+      </div>
+      <div id="user-pred-list-admin">
+        ${(race.userPredictions||[]).map((u, ui) => `
+          <div style="background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <div>
+                <span style="font-size:.85rem;font-weight:bold;">${u.userName}</span>
+                <span style="font-size:.65rem;color:var(--text-dim);margin-left:6px;">${u.handle}</span>
+                <span style="font-size:.65rem;background:rgba(31,111,235,.2);color:#58a6ff;padding:1px 6px;border-radius:6px;margin-left:6px;">${u.grade}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:.8rem;font-weight:bold;color:#e3b341;">💎 ${u.pointPrice||0}pt</span>
+                <button class="btn btn-outline btn-sm" onclick="editUserPred('${raceId}',${ui})">編集</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteUserPred('${raceId}',${ui})">削除</button>
+              </div>
+            </div>
+            <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:3px;">📝 ${(u.teaser||u.text).substring(0,55)}...</div>
+            <div style="font-size:.72rem;">買い目：<strong style="color:#e3b341;">${u.picks}</strong>　👍 ${u.likes||0}</div>
+          </div>`).join('') || '<p style="font-size:.8rem;color:var(--text-dim);text-align:center;padding:20px 0;">まだPRO USER予想がありません</p>'}
+      </div>
+    </div>`;
+}
+
+function updateRider(raceId, i, field, val) {
+  currentData = RK.getData();
+  currentData.races[raceId].riders[i][field] = val;
+  save();
+}
+function addRider(raceId) {
+  currentData = RK.getData();
+  const nextNum = (currentData.races[raceId].riders.length + 1);
+  currentData.races[raceId].riders.push({
+    num: nextNum, name:'新選手', pref:'東京', rank:'A1', style:'先行',
+    age:25, weight:70, kiki:'120期', results:'-',
+    mark:'', score: 90.0, rootScore: 60
+  });
+  save(); loadRidersEditor();
+}
+function deleteRider(raceId, i) {
+  if (!confirm('削除しますか？')) return;
+  currentData = RK.getData();
+  currentData.races[raceId].riders.splice(i,1);
+  save(); loadRidersEditor();
+}
+function saveLinePred(raceId) {
+  const groupsText = document.getElementById('line-groups').value;
+  const comment    = document.getElementById('line-comment').value;
+  /* "1,2 / 5,8,6 / 3,7,4,9" → [[1,2],[5,8,6],[3,7,4,9]] */
+  const groups = groupsText.split('/').map(g =>
+    g.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n))
+  ).filter(g => g.length > 0);
+  currentData = RK.getData();
+  currentData.races[raceId].linePrediction = { groups, comment };
+  save();
+}
+
+function updateFreePred(raceId) {
+  currentData = RK.getData();
+  currentData.races[raceId].freePrediction = document.getElementById('free-pred').value;
+  save();
+}
+function updateAiPredText(raceId) {
+  currentData = RK.getData();
+  currentData.races[raceId].aiProPrediction = document.getElementById('ai-pred-text').value;
+  save();
+  toast('✓ PRO AI予想テキストを保存しました');
+}
+
+/* ── PRO USER予想 CRUD ── */
+function addUserPred(raceId) {
+  openUserPredModal(raceId, -1, {
+    userName:'', handle:'@', grade:'A級 PRO USER', winRate:50.0, postCount:0,
+    teaser:'', text:'', picks:'', likes:0, pointPrice:100
+  });
+}
+function editUserPred(raceId, idx) {
+  currentData = RK.getData();
+  const u = currentData.races[raceId].userPredictions[idx];
+  openUserPredModal(raceId, idx, u);
+}
+function deleteUserPred(raceId, idx) {
+  if (!confirm('この予想を削除しますか？')) return;
+  currentData = RK.getData();
+  if (!currentData.races[raceId].userPredictions) return;
+  currentData.races[raceId].userPredictions.splice(idx, 1);
+  save(); loadRidersEditor();
+}
+let _upAvatarImg = null; /* モーダル内アバター画像の一時保持 */
+function _upAvatarPreviewHtml(avatarImg) {
+  if (avatarImg) {
+    return `<img src="${avatarImg}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">`;
+  }
+  return `<div style="width:64px;height:64px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#666;border:2px dashed var(--border);">👤</div>`;
+}
+function refreshUpAvatarPreview() {
+  const el = document.getElementById('up-avatar-preview');
+  if (el) el.innerHTML = _upAvatarPreviewHtml(_upAvatarImg);
+}
+function onUpAvatarChange(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2, sy = (img.height - size) / 2;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 128, 128);
+      _upAvatarImg = canvas.toDataURL('image/jpeg', 0.85);
+      refreshUpAvatarPreview();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+function clearUpAvatar() {
+  _upAvatarImg = null;
+  refreshUpAvatarPreview();
+}
+function openUserPredModal(raceId, idx, u) {
+  _upAvatarImg = u.avatarImg || null;
+  const isNew = idx === -1;
+  const mid = document.createElement('div');
+  mid.id = 'up-modal';
+  mid.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:16px;';
+  mid.innerHTML = `
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;">
+      <h3 style="margin-bottom:14px;font-size:1rem;">${isNew ? '予想を追加' : '予想を編集'}</h3>
+
+      <!-- アバター画像 -->
+      <div class="form-group">
+        <label class="field-label">プロフィール画像</label>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:4px;">
+          <div id="up-avatar-preview">${_upAvatarPreviewHtml(_upAvatarImg)}</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('up-avatar-file').click()">📷 画像を選択</button>
+            <button class="btn btn-outline btn-sm" onclick="clearUpAvatar()" style="color:var(--red);border-color:var(--red);">✕ 画像を削除</button>
+          </div>
+          <input type="file" id="up-avatar-file" accept="image/*" style="display:none;" onchange="onUpAvatarChange(this)">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-col">
+          <label class="field-label">ユーザー名</label>
+          <input type="text" id="up-name" value="${u.userName}" placeholder="例：競輪匠">
+        </div>
+        <div class="form-col">
+          <label class="field-label">ハンドル名</label>
+          <input type="text" id="up-handle" value="${u.handle}" placeholder="@handle">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="field-label">グレード</label>
+          <select id="up-grade">
+            ${['S級 PRO USER','A級 PRO USER','B級 PRO USER','新人 PRO USER'].map(g=>`<option ${u.grade===g?'selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-col">
+          <label class="field-label">週間回収率(%)</label>
+          <input type="number" id="up-winrate" value="${u.winRate}" min="0" step="0.1">
+        </div>
+        <div class="form-col">
+          <label class="field-label">投稿数</label>
+          <input type="number" id="up-posts" value="${u.postCount}" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="field-label">いいね数</label>
+          <input type="number" id="up-likes" value="${u.likes}" min="0">
+        </div>
+        <div class="form-col">
+          <label class="field-label">購入価格 (pt)</label>
+          <input type="number" id="up-price" value="${u.pointPrice||100}" min="0" max="50000" step="50">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">ティーザー文（ロック時プレビュー）</label>
+        <textarea id="up-teaser" rows="2" placeholder="購入前に見える冒頭の一部テキスト...">${u.teaser||''}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="field-label">予想テキスト（購入後に表示）</label>
+        <textarea id="up-text" rows="4" placeholder="予想の内容...">${u.text}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="field-label">推奨買い目（例: ② - ① - ⑧）</label>
+        <input type="text" id="up-picks" value="${u.picks}" placeholder="② - ① - ⑧">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn btn-primary" onclick="saveUserPred('${raceId}',${idx})">✓ 保存</button>
+        <button class="btn btn-outline" onclick="document.getElementById('up-modal').remove()">キャンセル</button>
+      </div>
+    </div>`;
+  document.body.appendChild(mid);
+}
+function saveUserPred(raceId, idx) {
+  const entry = {
+    id: 'up_' + Date.now(),
+    userName:   document.getElementById('up-name').value,
+    handle:     document.getElementById('up-handle').value,
+    grade:      document.getElementById('up-grade').value,
+    winRate:    parseFloat(document.getElementById('up-winrate').value) || 0,
+    postCount:  parseInt(document.getElementById('up-posts').value) || 0,
+    avatarImg:    _upAvatarImg || null,
+    teaser:     document.getElementById('up-teaser').value,
+    text:       document.getElementById('up-text').value,
+    picks:      document.getElementById('up-picks').value,
+    likes:      parseInt(document.getElementById('up-likes').value) || 0,
+    pointPrice: parseInt(document.getElementById('up-price').value) || 0
+  };
+  currentData = RK.getData();
+  if (!currentData.races[raceId].userPredictions) {
+    currentData.races[raceId].userPredictions = [];
+  }
+  if (idx === -1) {
+    currentData.races[raceId].userPredictions.push(entry);
+  } else {
+    entry.id = currentData.races[raceId].userPredictions[idx].id;
+    currentData.races[raceId].userPredictions[idx] = entry;
+  }
+  save();
+  document.getElementById('up-modal')?.remove();
+  loadRidersEditor();
+}
+
+/* ── AI PRED EDITOR ── */
+function addAiPred() {
+  currentData = RK.getData();
+  const raceKeys = Object.keys(currentData.races);
+  if (raceKeys.length === 0) { toast('先にレースを作成してください', 'error'); return; }
+
+  /* レース選択ダイアログ */
+  const options = raceKeys.map((k,i) => `<option value="${k}">${k}（${currentData.races[k].venue||''} ${currentData.races[k].raceNum||''}R）</option>`).join('');
+  const div = document.createElement('div');
+  div.id = 'ai-add-modal';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:16px;';
+  div.innerHTML = `
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:20px;width:100%;max-width:400px;">
+      <h3 style="margin-bottom:14px;font-size:1rem;">🤖 AI予想を新規追加</h3>
+      <div class="form-group">
+        <label class="field-label">対象レースを選択</label>
+        <select id="ai-new-raceid">${options}</select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">タイトル</label>
+        <input type="text" id="ai-new-title" placeholder="例: 松戸10R PRO AI予想">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn btn-primary" onclick="confirmAddAiPred()">追加</button>
+        <button class="btn btn-outline" onclick="document.getElementById('ai-add-modal').remove()">キャンセル</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+}
+function confirmAddAiPred() {
+  const raceId = document.getElementById('ai-new-raceid').value;
+  const title  = document.getElementById('ai-new-title').value.trim()
+               || (raceId + ' PRO AI予想');
+  currentData = RK.getData();
+  /* 同一raceIdの重複チェック */
+  if (currentData.proAiPredictions.some(p => p.raceId === raceId)) {
+    if (!confirm(`「${raceId}」のAI予想はすでに存在します。新たに追加しますか？`)) return;
+  }
+  const newEntry = {
+    id: 'ai_' + raceId + '_' + Date.now(),
+    raceId, title, confidence: 80, picks: '', summary: ''
+  };
+  if (!currentData.races[raceId].aiProPrediction) {
+    currentData.races[raceId].aiProPrediction = '';
+  }
+  currentData.proAiPredictions.push(newEntry);
+  save();
+  document.getElementById('ai-add-modal').remove();
+  populateAiSelect();
+  /* 追加した項目を自動選択して編集欄を開く */
+  const sel = document.getElementById('ai-select');
+  sel.value = currentData.proAiPredictions.length - 1;
+  loadAiEditor();
+  toast('✓ AI予想エントリを追加しました');
+}
+
+function populateAiSelect() {
+  currentData = RK.getData();
+  const sel = document.getElementById('ai-select');
+  sel.innerHTML = '<option value="">-- 予想を選択 --</option>'
+    + currentData.proAiPredictions.map((p,i)=>`<option value="${i}">${p.title}</option>`).join('');
+}
+function loadAiEditor() {
+  const idx = document.getElementById('ai-select').value;
+  if (idx === '') { document.getElementById('ai-editor').innerHTML=''; return; }
+  currentData = RK.getData();
+  const ai = currentData.proAiPredictions[idx];
+  document.getElementById('ai-editor').innerHTML = `
+    <div class="card">
+      <div class="card-title">${ai.title}</div>
+      <div class="form-group">
+        <label class="field-label">タイトル</label>
+        <input type="text" id="ai-title" value="${ai.title}">
+      </div>
+      <div class="form-group">
+        <label class="field-label">紐付けレースID</label>
+        <select id="ai-raceid">
+          ${Object.keys(currentData.races).map(k=>`<option value="${k}" ${ai.raceId===k?'selected':''}>${k}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-col">
+          <label class="field-label">推奨買い目</label>
+          <input type="text" id="ai-picks" value="${ai.picks}" placeholder="②-①-⑧">
+        </div>
+        <div class="form-col">
+          <label class="field-label">信頼度 (%)</label>
+          <input type="number" id="ai-confidence" value="${ai.confidence}" min="0" max="100">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">サマリー（一覧表示用）</label>
+        <input type="text" id="ai-summary" value="${ai.summary}">
+      </div>
+      <div class="form-group">
+        <label class="field-label">詳細AI分析レポート（PREMIUM会員のみ）</label>
+        <textarea id="ai-detail" rows="10">${currentData.races[ai.raceId]?.aiProPrediction||''}</textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveAiPred(${idx})">✓ 保存</button>
+      <button class="btn btn-danger btn-sm" style="margin-left:8px;" onclick="deleteAiPred(${idx})">削除</button>
+    </div>`;
+}
+function saveAiPred(idx) {
+  currentData = RK.getData();
+  const ai = currentData.proAiPredictions[idx];
+  ai.title      = document.getElementById('ai-title').value;
+  ai.raceId     = document.getElementById('ai-raceid').value;
+  ai.picks      = document.getElementById('ai-picks').value;
+  ai.confidence = +document.getElementById('ai-confidence').value;
+  ai.summary    = document.getElementById('ai-summary').value;
+  if (currentData.races[ai.raceId]) {
+    currentData.races[ai.raceId].aiProPrediction = document.getElementById('ai-detail').value;
+  }
+  save(); populateAiSelect();
+}
+function deleteAiPred(idx) {
+  if (!confirm('削除しますか？')) return;
+  currentData = RK.getData();
+  currentData.proAiPredictions.splice(idx,1);
+  save(); populateAiSelect();
+  document.getElementById('ai-editor').innerHTML='';
+}
+
+/* ── 実力7チャレンジ ADMIN ── */
+function renderChallenge7Admin() {
+  currentData = RK.getData();
+  const list = RK.getChallenge7();
+  const el = document.getElementById('ch7-admin-list');
+  if (list.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:.82rem;">チャレンジがありません</div>';
+    return;
+  }
+  el.innerHTML = list.map((c, ci) => {
+    const statusLabel = c.status === 'open' ? '受付中'
+      : c.status === 'judged' ? (c.prizeGranted ? '配布済み' : '判定済み') : '締切済み';
+    const statusColor = c.status === 'open' ? 'var(--green)'
+      : c.status === 'judged' ? (c.prizeGranted ? 'var(--text-dim)' : 'var(--yellow)') : 'var(--red)';
+
+    const racesHtml = (c.races || []).map((r, ri) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+        <span style="font-size:.72rem;color:var(--text-dim);width:18px;">${ri + 1}.</span>
+        <span style="font-size:.82rem;flex:1;">${escAdm(r.label)}</span>
+        <span style="font-size:.8rem;font-weight:bold;color:${r.winner ? 'var(--green)' : 'var(--text-dim)'};">
+          ${r.winner ? r.winner + '番' : '未判定'}
+        </span>
+      </div>`).join('');
+
+    const canJudge = c.status === 'open' || c.status === 'closed';
+    const judgeArea = canJudge ? `
+      <div style="margin-top:12px;background:rgba(227,179,65,.06);border:1px solid rgba(227,179,65,.25);border-radius:8px;padding:12px;">
+        <div style="font-size:.78rem;font-weight:bold;color:var(--yellow);margin-bottom:10px;">⚖️ 結果判定 — 各レースの1着車番を入力</div>
+        ${(c.races || []).map((r, ri) => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="font-size:.78rem;flex:1;color:var(--text-dim);">${ri + 1}. ${escAdm(r.label)}</span>
+            <select id="ch7-w-${ci}-${ri}" style="width:80px;padding:5px 8px;font-size:.78rem;background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);">
+              <option value="">--</option>
+              ${[1,2,3,4,5,6,7,8,9].map(n => `<option value="${n}" ${r.winner == n ? 'selected' : ''}>${n}番</option>`).join('')}
+            </select>
+          </div>`).join('')}
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn btn-warning btn-sm" onclick="judgeChallenge7Admin('${c.id}',${ci})">⚖️ 判定する</button>
+          ${c.status === 'open' ? `<button class="btn btn-outline btn-sm" onclick="closeChallenge7('${escJs(c.id)}')">受付を締め切る</button>` : ''}
+        </div>
+      </div>` : '';
+
+    const grantArea = (c.status === 'judged' && !c.prizeGranted) ? `
+      <div style="margin-top:12px;background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:12px;">
+        <div style="font-size:.82rem;font-weight:bold;margin-bottom:6px;">
+          🏆 当選者: ${(c.winners || []).length}名　賞金: ${(c.prizePerWinner || 0).toLocaleString()} pt/人
+          ${(c.winners || []).length === 0 ? '<span style="color:var(--red);font-size:.72rem;"> — 全問正解者なし</span>' : ''}
+        </div>
+        <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:10px;">${(c.winners || []).map(e => escAdm(e)).join(' / ') || 'なし'}</div>
+        ${(c.winners || []).length > 0
+          ? `<button class="btn btn-success btn-sm" onclick="grantChallenge7PrizesAdmin('${c.id}')">🎁 当選者にptを配布する</button>`
+          : ''}
+      </div>` : (c.prizeGranted ? `<div style="margin-top:8px;font-size:.75rem;color:var(--green);">✅ 賞金配布済み</div>` : '');
+
+    return `
+      <div class="card">
+        <div class="card-title">
+          ${escAdm(c.title || '実力7チャレンジ')}
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-size:.65rem;font-weight:bold;color:${statusColor};">● ${statusLabel}</span>
+            <button class="btn btn-danger btn-sm" onclick="deleteChallenge7('${c.id}')">削除</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;margin-bottom:10px;font-size:.78rem;color:var(--text-dim);flex-wrap:wrap;">
+          <span>💰 ${(c.prizePool || 0).toLocaleString()} pt 山分け</span>
+          <span>👥 エントリー ${(c.entries || []).length}件</span>
+          <span>📅 ${c.createdAt || ''}</span>
+        </div>
+        <div style="background:rgba(255,255,255,.03);border-radius:6px;padding:10px 12px;">
+          ${racesHtml}
+        </div>
+        ${judgeArea}
+        ${grantArea}
+      </div>`;
+  }).join('');
+}
+
+function createChallenge7() {
+  currentData = RK.getData();
+  const racesHtml = Array.from({length: 7}, (_, i) => `
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <span style="font-size:.75rem;color:var(--text-dim);width:16px;">${i + 1}</span>
+      <input type="text" id="ch7-rl-${i}" placeholder="例: 松戸10R" style="flex:1;">
+      <select id="ch7-ri-${i}" style="width:140px;font-size:.78rem;background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 8px;">
+        <option value="">レースID(任意)</option>
+        ${Object.keys(currentData.races).map(k => `<option value="${k}">${k}</option>`).join('')}
+      </select>
+    </div>`).join('');
+  const div = document.createElement('div');
+  div.id = 'ch7-create-modal';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
+  div.innerHTML = `
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;margin-top:20px;">
+      <h3 style="margin-bottom:14px;font-size:1rem;">🏆 実力7チャレンジ作成</h3>
+      <div class="form-group">
+        <label class="field-label">チャレンジタイトル</label>
+        <input type="text" id="ch7-new-title" value="実力7チャレンジ" placeholder="例: 実力7チャレンジ #1">
+      </div>
+      <div class="form-group">
+        <label class="field-label">賞金プール（pt）</label>
+        <input type="number" id="ch7-new-prize" value="10000" min="0" step="1000">
+      </div>
+      <div class="form-group">
+        <label class="field-label">対象レース（最大7レース）</label>
+        ${racesHtml}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="btn btn-primary" onclick="confirmCreateChallenge7()">✓ 作成する</button>
+        <button class="btn btn-outline" onclick="document.getElementById('ch7-create-modal').remove()">キャンセル</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+}
+
+function confirmCreateChallenge7() {
+  const title = document.getElementById('ch7-new-title').value.trim() || '実力7チャレンジ';
+  const prize = parseInt(document.getElementById('ch7-new-prize').value) || 0;
+  const races = [];
+  for (let i = 0; i < 7; i++) {
+    const label  = (document.getElementById('ch7-rl-' + i)?.value || '').trim();
+    const raceId = document.getElementById('ch7-ri-' + i)?.value || '';
+    if (label) races.push({ label, raceId, winner: null });
+  }
+  if (races.length === 0) { toast('レースを1つ以上入力してください', 'error'); return; }
+  const d = RK.getData();
+  if (!d.challenge7) d.challenge7 = [];
+  if (d.challenge7.some(c => c.status === 'open')) {
+    if (!confirm('現在開催中のチャレンジがあります。追加しますか？')) return;
+  }
+  d.challenge7.unshift({
+    id: 'ch7_' + Date.now(), title, status: 'open', prizePool: prize,
+    races, entries: [], winners: [], prizePerWinner: 0, prizeGranted: false,
+    createdAt: new Date().toISOString().slice(0, 10)
+  });
+  RK.saveData(d); currentData = d;
+  document.getElementById('ch7-create-modal').remove();
+  toast('✓ チャレンジを作成しました');
+  renderChallenge7Admin();
+}
+
+function judgeChallenge7Admin(challengeId, ci) {
+  const d = RK.getData();
+  const c = d.challenge7 && d.challenge7.find(x => x.id === challengeId);
+  if (!c) return;
+  const raceWinners = [];
+  for (let ri = 0; ri < c.races.length; ri++) {
+    const val = document.getElementById(`ch7-w-${ci}-${ri}`)?.value;
+    if (!val) { toast(`レース${ri + 1}の1着を選んでください`, 'error'); return; }
+    raceWinners.push(parseInt(val));
+  }
+  if (!confirm('判定を実行しますか？受付は終了します。')) return;
+  const result = RK.judgeChallenge7(challengeId, raceWinners);
+  if (result) {
+    toast(`✓ 判定完了 — 当選者 ${result.winners.length}名 / 賞金 ${result.prizePerWinner.toLocaleString()}pt/人`);
+    currentData = RK.getData();
+    renderChallenge7Admin();
+  } else {
+    toast('判定に失敗しました', 'error');
+  }
+}
+
+function closeChallenge7(challengeId) {
+  if (!confirm('受付を締め切りますか？（判定は後から行えます）')) return;
+  const d = RK.getData();
+  const c = d.challenge7 && d.challenge7.find(x => x.id === challengeId);
+  if (c) { c.status = 'closed'; RK.saveData(d); currentData = d; renderChallenge7Admin(); toast('✓ 受付を締め切りました'); }
+}
+
+function grantChallenge7PrizesAdmin(challengeId) {
+  if (!confirm('当選者にポイントを配布しますか？\nこの操作は取り消せません。')) return;
+  const result = RK.grantChallenge7Prizes(challengeId);
+  if (result !== false) {
+    toast(`✓ ${result}名にptを配布しました`);
+    currentData = RK.getData();
+    renderChallenge7Admin();
+  } else {
+    toast('配布に失敗しました（既に配布済みか対象なし）', 'error');
+  }
+}
+
+function deleteChallenge7(challengeId) {
+  if (!confirm('このチャレンジを削除しますか？')) return;
+  const d = RK.getData();
+  d.challenge7 = (d.challenge7 || []).filter(c => c.id !== challengeId);
+  RK.saveData(d); currentData = d;
+  renderChallenge7Admin(); toast('削除しました');
+}
+
+/* ── NOTICES ADMIN ── */
+function toggleNoticeForm() {
+  const f = document.getElementById('notice-form');
+  f.style.display = f.style.display === 'none' ? '' : 'none';
+}
+function toggleNoticeTarget() {
+  const isIndividual = document.getElementById('nf-type').value === 'individual';
+  document.getElementById('nf-target-group').style.display = isIndividual ? '' : 'none';
+}
+function saveNotice() {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  const type   = document.getElementById('nf-type').value;
+  const target = document.getElementById('nf-target').value.trim();
+  const title  = document.getElementById('nf-title').value.trim();
+  const body   = document.getElementById('nf-body').value.trim();
+  const giftPt = Math.max(0, parseInt(document.getElementById('nf-gift-pt').value) || 0);
+  if (!title) { toast('タイトルを入力してください', 'error'); return; }
+  if (!body)  { toast('本文を入力してください', 'error'); return; }
+  if (type === 'individual' && !target) { toast('宛先メールアドレスを入力してください', 'error'); return; }
+  RK.addNotice({
+    type, targetEmail: type === 'individual' ? target : '',
+    title, body, giftPt,
+    date: new Date().toISOString().slice(0, 10)
+  });
+  document.getElementById('nf-type').value     = 'broadcast';
+  document.getElementById('nf-target').value   = '';
+  document.getElementById('nf-title').value    = '';
+  document.getElementById('nf-body').value     = '';
+  document.getElementById('nf-gift-pt').value  = '0';
+  document.getElementById('nf-target-group').style.display = 'none';
+  toggleNoticeForm();
+  renderNoticesAdmin();
+  toast('✓ お知らせを配信しました');
+}
+function renderNoticesAdmin() {
+  const notices = RK.getNotices();
+  const el = document.getElementById('notices-admin-list');
+  if (notices.length === 0) {
+    el.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem;">配信済みお知らせはありません</p>';
+    return;
+  }
+  el.innerHTML = notices.map(n => `
+    <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="background:${n.type==='individual'?'rgba(200,164,0,.2)':'rgba(31,111,235,.15)'};color:${n.type==='individual'?'#e3b341':'#58a6ff'};font-size:.62rem;font-weight:bold;padding:2px 8px;border-radius:8px;">
+          ${n.type === 'individual' ? '個別: ' + n.targetEmail : '全体配信'}
+        </span>
+        <span style="font-size:.7rem;color:var(--text-dim);">${n.date}</span>
+        ${n.giftPt > 0 ? `<span style="background:rgba(212,160,23,.2);color:#e3b341;font-size:.62rem;font-weight:bold;padding:2px 8px;border-radius:8px;">💎 ${n.giftPt.toLocaleString()}pt配布</span>` : ''}
+        <span style="font-size:.68rem;color:var(--text-dim);margin-left:auto;">既読 ${n.readBy.length}件</span>
+        ${IS_MAIN ? `<button class="btn btn-danger btn-sm" onclick="deleteNoticeAdmin('${n.id}')">削除</button>` : ''}
+      </div>
+      <div style="font-weight:bold;font-size:.88rem;margin-bottom:4px;">${escAdm(n.title)}</div>
+      <div style="font-size:.78rem;color:var(--text-dim);line-height:1.6;">${escAdm(n.body)}</div>
+    </div>`).join('');
+}
+function deleteNoticeAdmin(id) {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  if (!confirm('このお知らせを削除しますか？')) return;
+  RK.deleteNotice(id);
+  renderNoticesAdmin();
+  toast('削除しました');
+}
+
+/* ── CONTACTS ADMIN ── */
+function renderContactsAdmin() {
+  const contacts = RK.getContacts();
+  const el = document.getElementById('contacts-admin-list');
+  if (contacts.length === 0) {
+    el.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem;">お問い合わせはまだありません</p>';
+    return;
+  }
+  el.innerHTML = contacts.map(c => `
+    <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <span style="font-weight:bold;font-size:.85rem;">${escAdm(c.category)}</span>
+        <span style="font-size:.72rem;color:var(--text-dim);">${escAdm(c.name)} (${escAdm(c.email)})</span>
+        <span style="font-size:.68rem;color:var(--text-dim);margin-left:auto;">${c.date}</span>
+        <span style="background:${c.status==='replied'?'rgba(63,185,80,.2)':'rgba(230,162,9,.2)'};color:${c.status==='replied'?'#3fb950':'#e3b341'};font-size:.62rem;font-weight:bold;padding:2px 8px;border-radius:8px;">
+          ${c.status === 'replied' ? '返信済み' : '未対応'}
+        </span>
+      </div>
+      <div style="font-size:.8rem;color:var(--text-dim);line-height:1.6;margin-bottom:8px;">${escAdm(c.message)}</div>
+      ${c.status !== 'replied' ? `<button class="btn btn-primary btn-sm" onclick="markReplied('${c.id}')">✓ 返信済みにする</button>` : ''}
+    </div>`).join('');
+}
+function markReplied(id) {
+  RK.updateContactStatus(id, 'replied');
+  renderContactsAdmin();
+  toast('✓ 返信済みに更新しました');
+}
+function escAdm(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── USERS ── */
+function renderUsersAdmin() {
+  const allUsers = RK.getAllUsers();
+  const emails   = Object.keys(allUsers);
+  const el       = document.getElementById('users-list');
+
+  if (!emails.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:.82rem;">登録済みユーザーがいません</div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:.8rem;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);color:var(--text-dim);">
+          <th style="text-align:left;padding:6px 8px;">メールアドレス</th>
+          <th style="text-align:left;padding:6px 8px;">ニックネーム</th>
+          <th style="text-align:center;padding:6px 8px;">プラン</th>
+          <th style="text-align:center;padding:6px 8px;">認証</th>
+          <th style="text-align:right;padding:6px 8px;">PT</th>
+          <th style="text-align:center;padding:6px 8px;">パスワード</th>
+          <th style="padding:6px 8px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${emails.map(email => {
+          const u = allUsers[email];
+          const planBadge = u.premium
+            ? '<span style="background:#7a5c00;color:#f5d800;padding:1px 7px;border-radius:4px;font-size:.68rem;">PREMIUM</span>'
+            : '<span style="background:#1a2a4a;color:#90b4ff;padding:1px 7px;border-radius:4px;font-size:.68rem;">無料</span>';
+          const verifiedBadge = u.emailVerified
+            ? '<span style="color:#3fb950;font-size:.75rem;">✓ 本登録済</span>'
+            : '<span style="color:#f0883e;font-size:.75rem;">仮登録</span>';
+          /* パスワードは平文では表示しない（ハッシュ化済みのため）*/
+          const pwCell = u.password
+            ? '<span style="font-size:.7rem;color:#888;">🔒 ハッシュ化済</span>'
+            : '<span style="font-size:.7rem;color:#f85149;">未設定</span>';
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:7px 8px;">${escAdm(email)}</td>
+            <td style="padding:7px 8px;">${escAdm(u.name || '')}</td>
+            <td style="padding:7px 8px;text-align:center;">${planBadge}</td>
+            <td style="padding:7px 8px;text-align:center;">${verifiedBadge}</td>
+            <td style="padding:7px 8px;text-align:right;">${(u.points||0).toLocaleString()}</td>
+            <td style="padding:7px 8px;text-align:center;">${pwCell}</td>
+            <td style="padding:7px 8px;display:flex;gap:4px;">
+              <button class="btn btn-sm btn-outline" style="font-size:.68rem;white-space:nowrap;" onclick="genResetUrl('${escAdm(email)}')">PW再設定URL</button>
+              ${IS_MAIN ? `<button class="btn btn-sm" style="background:#7f1d1d;color:#fff;font-size:.7rem;" onclick="deleteUser('${escAdm(email)}')">削除</button>` : ''}
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:8px;font-size:.72rem;color:var(--text-dim);">合計 ${emails.length} アカウント</div>
+    <div id="reset-url-result" style="display:none;margin-top:12px;background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:12px;">
+      <div style="font-size:.72rem;color:var(--text-dim);margin-bottom:6px;">パスワード再設定URL（ユーザーに共有してください）：</div>
+      <div id="reset-url-text" style="font-size:.75rem;word-break:break-all;color:#58a6ff;line-height:1.6;"></div>
+    </div>`;
+}
+function deleteUser(email) {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  if (!confirm(`「${email}」を削除しますか？`)) return;
+  const allUsers = RK.getAllUsers();
+  delete allUsers[email];
+  RK.saveAllUsers(allUsers);
+  /* 該当ユーザーがログイン中なら追い出す */
+  const cur = JSON.parse(localStorage.getItem('rk_user') || 'null');
+  if (cur && cur.email === email) localStorage.removeItem('rk_user');
+  /* per-user購入データも削除 */
+  localStorage.removeItem('rk_purchased_' + email);
+  renderUsersAdmin();
+  toast('✓ ユーザーを削除しました');
+}
+function genResetUrl(email) {
+  /* 暗号的乱数トークンを発行してリセットURLを表示 */
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+  localStorage.setItem('rk_reset_' + token, email);
+  /* 同ディレクトリにある login.html への URL を構築 */
+  const base = location.href.replace(/[^/]*$/, '') + 'login.html';
+  const url  = base + '?reset=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
+  const result = document.getElementById('reset-url-result');
+  document.getElementById('reset-url-text').textContent = url;
+  result.style.display = 'block';
+  result.scrollIntoView({ behavior: 'smooth' });
+  toast('✓ リセットURLを発行しました');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   展開予想ボード編集
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const TB_COLS = 9, TB_ROWS = 3;
+const TB_LANE_SHORT  = ['外', '中', '内'];
+const TB_LANE_LABELS = ['外（アウト）', '中（センター）', '内（インコース）'];
+const TB_COL_LABELS  = ['前', '1', '2', '3', '4', '5', '6', '7', '後'];
+const TB_ARR_LABELS  = ['なし', '←', '←←', '←←←'];
+
+let tacticsBoardState = { raceId: null, riders: [], board: [], comment: '' };
+
+function populateTacticsSelect() {
+  currentData = RK.getData();
+  const sel = document.getElementById('tactics-race-sel');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- レースを選択 --</option>'
+    + Object.keys(currentData.races).map(k => {
+        const r = currentData.races[k];
+        return `<option value="${escAdm(k)}">${escAdm(r.venue)} ${r.raceNum}R (${k})</option>`;
+      }).join('');
+  if (prev) { sel.value = prev; loadTacticsEditor(); }
+}
+
+function loadTacticsEditor() {
+  const raceId = document.getElementById('tactics-race-sel').value;
+  const edEl   = document.getElementById('tactics-editor');
+  if (!raceId) { edEl.style.display = 'none'; return; }
+  currentData = RK.getData();
+  const race  = currentData.races[raceId];
+  if (!race)  { edEl.style.display = 'none'; return; }
+
+  tacticsBoardState.raceId  = raceId;
+  tacticsBoardState.riders  = race.riders || [];
+  tacticsBoardState.board   = race.tactics?.board
+    ? JSON.parse(JSON.stringify(race.tactics.board)) : [];
+  tacticsBoardState.comment = race.tactics?.comment || '';
+
+  edEl.style.display = 'block';
+  document.getElementById('tactics-comment').value = tacticsBoardState.comment;
+  renderTacticsEditorAll();
+}
+
+function renderTacticsEditorAll() {
+  renderTacticsPreviewAdmin();
+  renderTacticsRiderTable();
+}
+
+function renderTacticsPreviewAdmin() {
+  const el    = document.getElementById('tactics-preview');
+  const board = tacticsBoardState.board;
+  const csGrid = `display:grid;grid-template-columns:22px repeat(${TB_COLS},minmax(40px,1fr));gap:3px;`;
+
+  if (!board.length) {
+    el.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:16px;font-size:.82rem;">まだ選手が配置されていません</div>';
+    return;
+  }
+  const cellMap = {};
+  board.forEach(it => { cellMap[`${it.row}_${it.col}`] = it; });
+
+  let html = `<div style="${csGrid}margin-bottom:2px;"><div></div>
+    <div style="text-align:center;font-size:.58rem;color:#f85149;font-weight:bold;">← GOAL</div>
+    ${Array(TB_COLS - 1).fill('<div></div>').join('')}
+  </div><div style="${csGrid}">`;
+
+  const cellH = '44px';
+  for (let r = 0; r < TB_ROWS; r++) {
+    html += `<div style="display:flex;align-items:center;justify-content:center;height:${cellH};font-size:.65rem;color:var(--text-dim);font-weight:bold;">${TB_LANE_SHORT[r]}</div>`;
+    for (let c = 0; c < TB_COLS; c++) {
+      const it = cellMap[`${r}_${c}`];
+      const bdr = c === 0 ? 'border-left:3px solid #f85149;border-radius:0 6px 6px 0;' : 'border-radius:6px;';
+      if (it) {
+        const bc  = RK.bikeColors[it.num] || { bg:'#333', text:'#fff', border:'#555' };
+        const arr = '←'.repeat(Math.max(0, Math.min(3, it.arrows || 0)));
+        html += `<div style="height:${cellH};background:var(--dark3);${bdr}border:1.5px solid var(--border);display:flex;align-items:center;justify-content:flex-end;padding:0 4px;gap:2px;">
+          ${arr ? `<span style="color:#f85149;font-weight:900;font-size:.78rem;letter-spacing:-2px;">${arr}</span>` : ''}
+          <div style="width:28px;height:28px;border-radius:50%;background:${bc.bg};color:${bc.text};border:2px solid ${bc.border};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem;flex-shrink:0;">${it.num}</div>
+        </div>`;
+      } else {
+        html += `<div style="height:${cellH};background:rgba(255,255,255,.03);${bdr}border:1.5px dashed var(--border);"></div>`;
+      }
+    }
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderTacticsRiderTable() {
+  const { riders, board } = tacticsBoardState;
+  const el = document.getElementById('tactics-rider-table');
+
+  el.innerHTML = riders.map(rider => {
+    const placed  = board.find(it => it.num === rider.num);
+    const bc      = RK.bikeColors[rider.num] || { bg:'#333', text:'#fff', border:'#555' };
+    const isPlaced = !!placed;
+    const curRow  = placed?.row  ?? 1;
+    const curCol  = placed?.col  ?? 0;
+    const curArr  = placed?.arrows ?? 1;
+
+    const mkBtns = (items, prop, cur) => items.map((lbl, i) => {
+      const act = isPlaced && cur === i
+        ? 'background:var(--blue);color:#fff;'
+        : 'background:var(--dark3);color:var(--text-dim);';
+      return `<button onclick="setTacticsRider(${rider.num},'${prop}',${i})"
+        style="${act}border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:.68rem;cursor:pointer;">${escAdm(lbl)}</button>`;
+    }).join('');
+
+    return `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="width:28px;height:28px;border-radius:50%;background:${bc.bg};color:${bc.text};border:2px solid ${bc.border};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0;">${rider.num}</div>
+      <div style="font-size:.8rem;min-width:70px;">${escAdm(rider.name || '')}</div>
+      <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;cursor:pointer;">
+        <input type="checkbox" ${isPlaced ? 'checked' : ''} onchange="toggleTacticsRider(${rider.num},this.checked)">配置する
+      </label>
+      ${isPlaced ? `
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:.6rem;color:var(--text-dim);">コース</div>
+          <div style="display:flex;gap:3px;">${mkBtns(TB_LANE_SHORT, 'row', curRow)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:.6rem;color:var(--text-dim);">位置（前→後）</div>
+          <div style="display:flex;gap:3px;">${mkBtns(TB_COL_LABELS, 'col', curCol)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:.6rem;color:var(--text-dim);">加速度</div>
+          <div style="display:flex;gap:3px;">${mkBtns(TB_ARR_LABELS, 'arrows', curArr)}</div>
+        </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleTacticsRider(num, checked) {
+  if (checked) {
+    if (!tacticsBoardState.board.find(it => it.num === num)) {
+      /* 空きセルを自動検索 */
+      const taken = new Set(tacticsBoardState.board.map(it => `${it.row}_${it.col}`));
+      let r = 1, c = 0;
+      outer: for (let ci = 0; ci < TB_COLS; ci++) {
+        for (let ri = 0; ri < TB_ROWS; ri++) {
+          if (!taken.has(`${ri}_${ci}`)) { r = ri; c = ci; break outer; }
+        }
+      }
+      tacticsBoardState.board.push({ num, row: r, col: c, arrows: 1 });
+    }
+  } else {
+    tacticsBoardState.board = tacticsBoardState.board.filter(it => it.num !== num);
+  }
+  renderTacticsEditorAll();
+}
+
+function setTacticsRider(num, prop, val) {
+  const item = tacticsBoardState.board.find(it => it.num === num);
+  if (!item) return;
+  item[prop] = val;
+  /* セル重複チェック：同じ (row, col) の他の選手を隣に移動 */
+  if (prop === 'row' || prop === 'col') {
+    tacticsBoardState.board.forEach(other => {
+      if (other === item) return;
+      if (other.row === item.row && other.col === item.col) {
+        for (let c = 0; c < TB_COLS; c++) {
+          const clash = tacticsBoardState.board.find(x => x !== other && x.row === other.row && x.col === c);
+          if (!clash) { other.col = c; break; }
+        }
+      }
+    });
+  }
+  renderTacticsEditorAll();
+}
+
+function saveTactics() {
+  const { raceId, board, comment } = tacticsBoardState;
+  if (!raceId) return;
+  currentData = RK.getData();
+  if (!currentData.races[raceId]) return;
+  if (!currentData.races[raceId].tactics) currentData.races[raceId].tactics = {};
+  currentData.races[raceId].tactics.board   = JSON.parse(JSON.stringify(board));
+  currentData.races[raceId].tactics.comment = document.getElementById('tactics-comment').value.trim();
+  save();
+  toast('✓ 展開ボードを保存しました');
+}
+
+/* ── BBS管理 ── */
+async function renderBBSAdmin() {
+  const el = document.getElementById('bbs-admin-content');
+  el.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">読み込み中...</div>';
+
+  /* FirebaseからBBS全データを取得 */
+  const allBbs = await RK.getAllBBSFromFirebase();
+  /* Firebase未設定の場合はlocalStorageから収集 */
+  const raceIds = Object.keys(allBbs).length
+    ? Object.keys(allBbs)
+    : Object.keys(localStorage).filter(k => k.startsWith('rk_bbs_') && !k.includes('_last_')).map(k => k.replace('rk_bbs_', ''));
+
+  if (!raceIds.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">掲示板の投稿はありません</div>';
+    return;
+  }
+
+  let html = '';
+  raceIds.sort().forEach(raceId => {
+    const msgs = allBbs[raceId] || RK.getBBSMessages(raceId);
+    if (!msgs.length) return;
+
+    html += `
+      <div style="margin-bottom:20px;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--dark3);">
+          <div style="font-weight:bold;font-size:.88rem;">${escAdm(raceId)}
+            <span style="color:var(--text-dim);font-weight:normal;font-size:.75rem;margin-left:6px;">${msgs.length}件</span>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="clearBBS('${escAdm(raceId)}')">全削除</button>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+          <thead>
+            <tr>
+              <th style="width:22%;">投稿者</th>
+              <th>内容</th>
+              <th style="width:10%;white-space:nowrap;">時刻</th>
+              <th style="width:60px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${msgs.map(m => {
+              const d = new Date(m.ts);
+              const ts = (d.getMonth()+1)+'/'+d.getDate()+' '
+                + d.getHours().toString().padStart(2,'0')+':'
+                + d.getMinutes().toString().padStart(2,'0');
+              const premBadge = m.premium
+                ? '<span style="background:#7a5c00;color:#f5d800;font-size:.6rem;padding:1px 5px;border-radius:4px;margin-left:4px;">PREMIUM</span>'
+                : '';
+              return `<tr>
+                <td style="padding:8px 10px;vertical-align:top;">
+                  ${escAdm(m.name)}${premBadge}
+                  <div style="font-size:.65rem;color:var(--text-dim);margin-top:2px;">${escAdm(m.email||'')}</div>
+                </td>
+                <td style="padding:8px 10px;word-break:break-word;max-width:240px;">${escAdm(m.text)}</td>
+                <td style="padding:8px 10px;font-size:.72rem;color:var(--text-dim);white-space:nowrap;">${ts}</td>
+                <td style="padding:8px 10px;">
+                  <button class="btn btn-sm btn-danger"
+                    onclick="deleteBBSPost('${escAdm(raceId)}','${escAdm(m.id)}')">削除</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  });
+
+  el.innerHTML = html || '<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:.85rem;">掲示板の投稿はありません</div>';
+}
+
+function deleteBBSPost(raceId, msgId) {
+  if (!confirm('この投稿を削除しますか？')) return;
+  const msgs = RK.getBBSMessages(raceId).filter(m => m.id !== msgId);
+  RK.saveBBSMessages(raceId, msgs);
+  toast('✓ 投稿を削除しました');
+  renderBBSAdmin();
+}
+
+function clearBBS(raceId) {
+  if (!confirm(`「${raceId}」の掲示板を全削除しますか？`)) return;
+  RK.deleteBBSMessages(raceId);
+  toast('✓ 掲示板を全削除しました');
+  renderBBSAdmin();
+}
+
+/* ── PROMO CODES ── */
+function togglePromoForm() {
+  const f = document.getElementById('promo-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('change', function(e) {
+  if (e.target.name === 'pf-type') {
+    const isPremium = e.target.value === 'premium_days';
+    document.getElementById('pf-premium-row').style.display = isPremium ? 'block' : 'none';
+    document.getElementById('pf-points-row').style.display  = isPremium ? 'none'  : 'block';
+  }
+});
+function savePromoCode() {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  const code = (document.getElementById('pf-code').value || '').trim().toUpperCase();
+  if (!code) { toast('コードを入力してください', 'error'); return; }
+  const type     = document.querySelector('input[name="pf-type"]:checked').value;
+  const value    = type === 'premium_days'
+    ? parseInt(document.getElementById('pf-days').value, 10)
+    : parseInt(document.getElementById('pf-pts').value, 10);
+  const maxUses  = parseInt(document.getElementById('pf-maxuses').value, 10) || 0;
+  const label    = document.getElementById('pf-label').value.trim() ||
+    (type === 'premium_days' ? `${value}日間PREMIUM無料` : `${value}pt追加`);
+
+  if (!value || value < 1) { toast('付与値を正しく入力してください', 'error'); return; }
+
+  const list = RK.getDynamicPromoCodes();
+  if (list.find(d => d.code === code)) { toast('同じコードが既に存在します', 'error'); return; }
+
+  list.push({ code, type, value, label, maxUses, usedEmails: [], active: true, createdAt: new Date().toISOString().slice(0, 10) });
+  RK.saveDynamicPromoCodes(list);
+  toast('✓ プロモコードを作成しました');
+  document.getElementById('promo-form').style.display = 'none';
+  document.getElementById('pf-code').value = '';
+  document.getElementById('pf-label').value = '';
+  document.getElementById('pf-maxuses').value = '0';
+  renderPromosAdmin();
+}
+function renderPromosAdmin() {
+  const list = RK.getDynamicPromoCodes();
+  const el = document.getElementById('promo-list');
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:.82rem;">プロモコードがありません</div>';
+    return;
+  }
+  el.innerHTML = list.map((d, i) => {
+    const typeLabel = d.type === 'premium_days' ? `PREMIUM ${d.value}日付与` : `${d.value}pt追加`;
+    const usageLabel = d.maxUses > 0 ? `${d.usedEmails.length} / ${d.maxUses}` : `${d.usedEmails.length} / ∞`;
+    const statusBadge = d.active
+      ? '<span style="background:#1b5e20;color:#a5d6a7;padding:2px 8px;border-radius:4px;font-size:.72rem;">有効</span>'
+      : '<span style="background:#4a0e0e;color:#ef9a9a;padding:2px 8px;border-radius:4px;font-size:.72rem;">無効</span>';
+    return `<div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <span style="font-family:monospace;font-size:1rem;font-weight:700;letter-spacing:.1em;">${escAdm(d.code)}</span>
+          ${statusBadge}
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${IS_MAIN ? `<button class="btn btn-outline btn-sm" onclick="togglePromoActive(${i})">${d.active ? '無効化' : '有効化'}</button>` : ''}
+          ${IS_MAIN ? `<button class="btn btn-sm" style="background:#7f1d1d;color:#fff;" onclick="deletePromo(${i})">削除</button>` : ''}
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:.82rem;color:var(--text-dim);display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px;">
+        <div>種別: <span style="color:var(--text);">${typeLabel}</span></div>
+        <div>ラベル: <span style="color:var(--text);">${escAdm(d.label)}</span></div>
+        <div>使用数: <span style="color:var(--text);">${usageLabel}</span></div>
+        <div>作成日: <span style="color:var(--text);">${d.createdAt}</span></div>
+      </div>
+      ${d.usedEmails.length ? `<details style="margin-top:8px;font-size:.78rem;"><summary style="cursor:pointer;color:var(--text-dim);">使用ユーザー (${d.usedEmails.length})</summary><div style="margin-top:6px;color:var(--text-dim);">${d.usedEmails.map(escAdm).join('<br>')}</div></details>` : ''}
+    </div>`;
+  }).join('');
+}
+function togglePromoActive(idx) {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  const list = RK.getDynamicPromoCodes();
+  if (!list[idx]) return;
+  list[idx].active = !list[idx].active;
+  RK.saveDynamicPromoCodes(list);
+  renderPromosAdmin();
+  toast('✓ 更新しました');
+}
+function deletePromo(idx) {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  const list = RK.getDynamicPromoCodes();
+  if (!list[idx]) return;
+  if (!confirm(`「${list[idx].code}」を削除しますか？`)) return;
+  list.splice(idx, 1);
+  RK.saveDynamicPromoCodes(list);
+  renderPromosAdmin();
+  toast('✓ 削除しました');
+}
+
+/* ── PRO USER管理 ── */
+function calcProUserStats(puId, handle) {
+  const data = RK.getData();
+  const allUsers = RK.getAllUsers();
+  const predMap = {};
+  Object.values(data.races || {}).forEach(race => {
+    (race.userPredictions || []).forEach(p => {
+      if (p.proUserId === puId || p.handle === handle) predMap[p.id] = p.pointPrice || 0;
+    });
+  });
+  let posts = Object.keys(predMap).length;
+  let salesPt = 0;
+  Object.keys(allUsers).forEach(email => {
+    const purchased = JSON.parse(localStorage.getItem('rk_purchased_' + email) || '[]');
+    purchased.forEach(pid => { if (predMap[pid] !== undefined) salesPt += predMap[pid]; });
+  });
+  const monthSalesPt = RK.calcMonthSales(puId, handle);
+  return { posts, salesPt, monthSalesPt };
+}
+function renderProUsersAdmin() {
+  const now = new Date();
+  const monthLabel = `${now.getMonth()+1}月`;
+  const list = RK.getRKProUsers();
+  const el = document.getElementById('pu-admin-list');
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:30px;font-size:.85rem;">PRO USERが登録されていません</div>';
+    return;
+  }
+  el.innerHTML = list.map((pu, i) => {
+    const stats = calcProUserStats(pu.id, pu.handle);
+    const avatarHtml = pu.avatarImg
+      ? `<img src="${pu.avatarImg}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">`
+      : `<div style="width:44px;height:44px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;color:#777;font-size:1.2rem;border:2px solid var(--border);">👤</div>`;
+    const gradeSelect = IS_MAIN
+      ? `<select style="background:var(--dark3);border:1px solid var(--border);color:var(--text);border-radius:4px;font-size:.72rem;padding:2px 4px;" onchange="changeProUserGrade(${i},this.value)">
+          ${['S級 PRO USER','A級 PRO USER','B級 PRO USER','新人 PRO USER'].map(g=>`<option ${pu.grade===g?'selected':''}>${g}</option>`).join('')}
+        </select>`
+      : `<span style="font-size:.75rem;background:rgba(31,111,235,.2);color:#58a6ff;padding:2px 8px;border-radius:4px;">${pu.grade}</span>`;
+    return `<div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
+      ${avatarHtml}
+      <div style="flex:1;min-width:160px;">
+        <div style="font-weight:bold;font-size:.9rem;">${escAdm(pu.userName)} <span style="font-size:.72rem;color:var(--text-dim);">${escAdm(pu.handle)}</span></div>
+        <div style="margin-top:4px;">${gradeSelect}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,auto);gap:4px 16px;font-size:.75rem;text-align:center;">
+        <div style="color:var(--text-dim);">投稿数</div>
+        <div style="color:var(--text-dim);">累計売上</div>
+        <div style="color:var(--yellow);font-weight:bold;">${monthLabel}売上</div>
+        <div style="font-weight:bold;font-size:1rem;color:#58a6ff;">${stats.posts}</div>
+        <div style="font-weight:bold;font-size:1rem;color:var(--text-dim);">${stats.salesPt.toLocaleString()} pt</div>
+        <div style="font-weight:bold;font-size:1rem;color:var(--yellow);">${stats.monthSalesPt.toLocaleString()} pt</div>
+      </div>
+      ${IS_MAIN ? `<div style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="openProUserModal(${i})">編集</button>
+        <button class="btn btn-sm" style="background:#7f1d1d;color:#fff;" onclick="deleteProUser(${i})">削除</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+  if (IS_MAIN) renderWithdrawalAdmin();
+  renderPuPredictions();
+}
+
+/* ── PRO USER投稿一覧 & 変更履歴 ── */
+function renderPuPredictions() {
+  const el = document.getElementById('pu-pred-log');
+  if (!el) return;
+  const data = RK.getData();
+
+  /* 全レースから全予想を収集 */
+  const items = [];
+  Object.entries(data.races || {}).forEach(([raceId, race]) => {
+    (race.userPredictions || []).forEach(p => {
+      items.push({ raceId, race, p });
+    });
+  });
+
+  if (items.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-dim);font-size:.8rem;padding:10px;text-align:center;">投稿がありません</div>';
+    return;
+  }
+
+  /* 編集済みを先頭に、次に新規（id降順） */
+  items.sort((a, b) => {
+    const ae = (a.p.editHistory||[]).length > 0;
+    const be = (b.p.editHistory||[]).length > 0;
+    if (ae !== be) return ae ? -1 : 1;
+    return (b.p.id||'').localeCompare(a.p.id||'');
+  });
+
+  function diffRow(label, before, after) {
+    if (before === after) return '';
+    const changed = before !== after;
+    return `<tr>
+      <td style="padding:5px 8px;font-size:.72rem;color:var(--text-dim);white-space:nowrap;">${escAdm(label)}</td>
+      <td style="padding:5px 8px;font-size:.72rem;color:#f85149;background:rgba(248,81,73,.07);border-radius:4px;word-break:break-all;">${escAdm(String(before))}</td>
+      <td style="padding:5px 8px;font-size:.72rem;color:#3fb950;background:rgba(63,185,80,.07);border-radius:4px;word-break:break-all;">${escAdm(String(after))}</td>
+    </tr>`;
+  }
+
+  el.innerHTML = items.map(({ raceId, race, p }) => {
+    const hasEdit  = (p.editHistory||[]).length > 0;
+    const editBadge = hasEdit
+      ? `<span style="background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.3);font-size:.65rem;padding:1px 7px;border-radius:8px;font-weight:bold;">✏️ 編集済み</span>`
+      : `<span style="background:rgba(63,185,80,.1);color:#3fb950;border:1px solid rgba(63,185,80,.25);font-size:.65rem;padding:1px 7px;border-radius:8px;">初回投稿</span>`;
+
+    /* 変更履歴テーブル */
+    let histHtml = '';
+    if (hasEdit) {
+      p.editHistory.forEach((h, hi) => {
+        const af = { text: p.text||'', teaser: p.teaser||'', picks: p.picks||'', pointPrice: p.pointPrice||0 };
+        /* 最新履歴の after は現在の値。複数履歴がある場合は次の履歴の before が after */
+        const afterText  = hi === p.editHistory.length - 1 ? af.text       : (p.editHistory[hi+1]?.before?.text       ?? af.text);
+        const afterTeaser= hi === p.editHistory.length - 1 ? af.teaser     : (p.editHistory[hi+1]?.before?.teaser     ?? af.teaser);
+        const afterPicks = hi === p.editHistory.length - 1 ? af.picks      : (p.editHistory[hi+1]?.before?.picks      ?? af.picks);
+        const afterPrice = hi === p.editHistory.length - 1 ? af.pointPrice : (p.editHistory[hi+1]?.before?.pointPrice ?? af.pointPrice);
+        const dRows = [
+          diffRow('買い目',   h.before.picks,      afterPicks),
+          diffRow('価格(pt)', h.before.pointPrice, afterPrice),
+          diffRow('ティーザー', h.before.teaser,   afterTeaser),
+          diffRow('テキスト',  h.before.text,      afterText),
+        ].filter(Boolean).join('');
+
+        histHtml += `
+          <div style="margin-top:10px;border:1px solid rgba(248,81,73,.25);border-radius:8px;overflow:hidden;">
+            <div style="background:rgba(248,81,73,.1);padding:6px 10px;font-size:.72rem;color:#f85149;font-weight:bold;">
+              第${hi+1}回編集　${h.editedAt ? new Date(h.editedAt).toLocaleString('ja-JP') : '—'}
+            </div>
+            ${dRows
+              ? `<table style="width:100%;border-collapse:collapse;">
+                  <thead><tr>
+                    <th style="padding:4px 8px;font-size:.65rem;color:var(--text-dim);text-align:left;border-bottom:1px solid var(--border);width:72px;">項目</th>
+                    <th style="padding:4px 8px;font-size:.65rem;color:#f85149;text-align:left;border-bottom:1px solid var(--border);">変更前</th>
+                    <th style="padding:4px 8px;font-size:.65rem;color:#3fb950;text-align:left;border-bottom:1px solid var(--border);">変更後</th>
+                  </tr></thead>
+                  <tbody>${dRows}</tbody>
+                </table>`
+              : '<div style="padding:6px 10px;font-size:.72rem;color:var(--text-dim);">変更なし（同内容で保存）</div>'}
+          </div>`;
+      });
+    }
+
+    return `
+      <div style="background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+          <span style="font-size:.78rem;font-weight:bold;color:#58a6ff;">${escAdm(p.userName||'')} <span style="font-size:.7rem;color:var(--text-dim);">${escAdm(p.handle||'')}</span></span>
+          <span style="font-size:.7rem;background:rgba(31,111,235,.15);color:#58a6ff;padding:1px 7px;border-radius:4px;">${escAdm(p.grade||'')}</span>
+          ${editBadge}
+          <span style="font-size:.7rem;color:var(--text-dim);margin-left:auto;">🏁 ${escAdm(race.venue||'')} ${escAdm(String(race.raceNum||''))}R ${escAdm(race.grade||'')}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.75rem;margin-bottom:8px;">
+          <span style="color:var(--text-dim);">買い目</span><strong style="color:var(--yellow);">${escAdm(p.picks||'—')}</strong>
+          <span style="color:var(--text-dim);">価格</span><span>${(p.pointPrice||0).toLocaleString()} pt</span>
+          <span style="color:var(--text-dim);">ティーザー</span><span style="color:var(--text-dim);">${escAdm((p.teaser||'').substring(0,60))}${(p.teaser||'').length>60?'…':''}</span>
+        </div>
+        <details>
+          <summary style="font-size:.75rem;color:var(--text-dim);cursor:pointer;user-select:none;">▶ 予想本文を見る</summary>
+          <div style="margin-top:6px;font-size:.78rem;color:var(--text);line-height:1.7;background:var(--dark2);border-radius:6px;padding:8px;">${escAdm(p.text||'')}</div>
+        </details>
+        ${histHtml}
+      </div>`;
+  }).join('');
+}
+
+/* ── 出金申請管理 ── */
+function renderWithdrawalAdmin() {
+  if (!IS_MAIN) return;
+  const el = document.getElementById('wd-admin-list');
+  if (!el) return;
+  const allReqs = RK.getWithdrawalRequests();
+  const pending  = allReqs.filter(r => r.status === 'pending' || r.status === 'approved');
+  const done     = allReqs.filter(r => r.status === 'completed' || r.status === 'rejected');
+
+  const stLabel = { pending:'申請中', approved:'承認済み', completed:'振込完了', rejected:'却下' };
+  const stColor = { pending:'#e3b341', approved:'#58a6ff', completed:'#3fb950', rejected:'#f85149' };
+
+  function reqCard(r) {
+    const rate = r.rate || 40;
+    return `<div style="background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:bold;font-size:.88rem;">${escAdm(r.userName||r.handle)} <span style="font-size:.72rem;color:var(--text-dim);">${escAdm(r.handle)}</span>
+            <span style="margin-left:6px;font-size:.7rem;background:rgba(31,111,235,.2);color:#58a6ff;padding:1px 7px;border-radius:4px;">${escAdm(r.grade||'')}</span>
+          </div>
+          <div style="font-size:1.05rem;font-weight:900;color:#58a6ff;margin-top:4px;">${(r.requestPt||0).toLocaleString()} pt 出金</div>
+          <div style="font-size:.72rem;color:var(--text-dim);margin-top:5px;line-height:1.8;">
+            還元率: ${rate}% ／ 累計売上: ${(r.totalSalesPt||0).toLocaleString()} pt<br>
+            🏦 ${escAdm(r.bankName)} ${escAdm(r.branchName)} / ${escAdm(r.accountType)} ${escAdm(r.accountNumber)}<br>
+            口座名義: <strong style="color:var(--text);">${escAdm(r.accountHolder)}</strong><br>
+            申請日時: ${r.ts ? new Date(r.ts).toLocaleString('ja-JP') : '—'}
+            ${r.processedTs ? `<br>処理日時: ${new Date(r.processedTs).toLocaleString('ja-JP')}` : ''}
+            ${r.adminNote ? `<br>メモ: ${escAdm(r.adminNote)}` : ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span style="background:rgba(0,0,0,.3);color:${stColor[r.status]||'#aaa'};border:1px solid ${stColor[r.status]||'#555'};padding:3px 11px;border-radius:10px;font-size:.72rem;font-weight:bold;">${stLabel[r.status]||r.status}</span>
+          ${r.status === 'pending' ? `
+            <button class="btn btn-sm btn-primary" style="font-size:.72rem;" onclick="processWithdrawal('${escAdm(r.id)}','approved')">承認する</button>
+            <button class="btn btn-sm" style="font-size:.72rem;background:#7f1d1d;color:#fff;" onclick="processWithdrawal('${escAdm(r.id)}','rejected')">却下する</button>
+          ` : r.status === 'approved' ? `
+            <button class="btn btn-sm btn-success" style="font-size:.72rem;" onclick="processWithdrawal('${escAdm(r.id)}','completed')">振込完了にする</button>
+            <button class="btn btn-sm" style="font-size:.72rem;background:#7f1d1d;color:#fff;" onclick="processWithdrawal('${escAdm(r.id)}','rejected')">却下する</button>
+          ` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  let html = '';
+  if (!pending.length && !done.length) {
+    html = '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:.8rem;">出金申請はありません</div>';
+  } else {
+    if (pending.length) {
+      html += `<div style="font-size:.75rem;font-weight:bold;color:#e3b341;margin-bottom:8px;">⏳ 対応待ち（${pending.length}件）</div>`;
+      html += pending.slice().sort((a,b)=>a.ts>b.ts?1:-1).map(reqCard).join('');
+    }
+    if (done.length) {
+      const recent = done.slice().sort((a,b)=>a.ts>b.ts?-1:1).slice(0,10);
+      html += `<div style="font-size:.75rem;font-weight:bold;color:var(--text-dim);margin:12px 0 8px;">📋 処理済み（直近${recent.length}件）</div>`;
+      html += recent.map(reqCard).join('');
+    }
+  }
+  el.innerHTML = html;
+}
+function processWithdrawal(id, newStatus) {
+  const labels = { approved:'承認', completed:'振込完了', rejected:'却下' };
+  const note = newStatus === 'rejected' ? (prompt('却下理由（任意）') || '') : '';
+  if (newStatus === 'rejected' && note === null) return; // prompt cancelled
+  if (!confirm(`この申請を「${labels[newStatus]}」にしてよろしいですか？`)) return;
+  RK.updateWithdrawalStatus(id, newStatus, note);
+  renderWithdrawalAdmin();
+  toast(`✓ ${labels[newStatus]}しました`);
+}
+
+function openProUserModal(idx) {
+  if (!IS_MAIN) return;
+  const isNew = idx === -1;
+  const list = RK.getRKProUsers();
+  const pu = isNew ? { userName:'', handle:'@', grade:'新人 PRO USER', winRate:100.0, avatarImg:null } : list[idx];
+  const mid = document.createElement('div');
+  mid.id = 'pu-reg-modal';
+  mid.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:16px;';
+  mid.innerHTML = `
+    <div style="background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:24px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;">
+      <h3 style="margin-bottom:16px;font-size:1rem;">${isNew ? '👥 PRO USER 新規登録' : '👥 PRO USER 編集'}</h3>
+      <div class="form-group"><label class="field-label">ユーザー名</label><input type="text" id="pur-name" value="${escAdm(pu.userName)}" placeholder="例: 競輪匠"></div>
+      <div class="form-group"><label class="field-label">ハンドル（ログインID）</label><input type="text" id="pur-handle" value="${escAdm(pu.handle)}" placeholder="@handle"></div>
+      <div class="form-group"><label class="field-label">グレード</label>
+        <select id="pur-grade">${['S級 PRO USER','A級 PRO USER','B級 PRO USER','新人 PRO USER'].map(g=>`<option ${pu.grade===g?'selected':''}>${g}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="field-label">週間回収率 (%)</label><input type="number" id="pur-winrate" value="${pu.winRate||100}" min="0" step="0.1"></div>
+      <div class="form-group"><label class="field-label">${isNew ? 'パスワード（初期）' : '新しいパスワード（空白で変更しない）'}</label>
+        <input type="password" id="pur-pw" placeholder="${isNew ? '初期パスワード（8文字以上）' : '変更する場合のみ入力'}">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn btn-primary" onclick="saveProUser(${idx})">✓ 保存</button>
+        <button class="btn btn-outline" onclick="document.getElementById('pur-reg-modal')?.remove()||document.getElementById('pu-reg-modal')?.remove()">キャンセル</button>
+      </div>
+    </div>`;
+  document.body.appendChild(mid);
+}
+async function saveProUser(idx) {
+  const isNew = idx === -1;
+  const list = RK.getRKProUsers();
+  const name    = document.getElementById('pur-name').value.trim();
+  const handle  = document.getElementById('pur-handle').value.trim();
+  const grade   = document.getElementById('pur-grade').value;
+  const winRate = parseFloat(document.getElementById('pur-winrate').value) || 100;
+  const pw      = document.getElementById('pur-pw').value;
+  if (!name || !handle) { toast('ユーザー名とハンドルは必須です', 'error'); return; }
+  if (isNew && pw.length < 8) { toast('パスワードは8文字以上', 'error'); return; }
+  if (!isNew && pw && pw.length < 8) { toast('パスワードは8文字以上', 'error'); return; }
+  // handle重複チェック
+  const dupIdx = list.findIndex((p,i) => p.handle === handle && i !== idx);
+  if (dupIdx !== -1) { toast('このハンドルは既に使用されています', 'error'); return; }
+  const entry = isNew
+    ? { id: 'pu_' + Date.now(), userName: name, handle, grade, winRate, postCount:0, avatarImg: null }
+    : { ...list[idx], userName: name, handle, grade, winRate };
+  if (pw) entry.passwordHash = await RK.hashPassword(pw);
+  if (isNew) list.push(entry); else list[idx] = entry;
+  RK.saveRKProUsers(list);
+  document.getElementById('pu-reg-modal')?.remove();
+  renderProUsersAdmin();
+  toast('✓ 保存しました');
+}
+function deleteProUser(idx) {
+  if (!IS_MAIN) return;
+  const list = RK.getRKProUsers();
+  if (!list[idx]) return;
+  if (!confirm(`「${list[idx].userName}」を削除しますか？`)) return;
+  list.splice(idx, 1);
+  RK.saveRKProUsers(list);
+  renderProUsersAdmin();
+  toast('✓ 削除しました');
+}
+function changeProUserGrade(idx, grade) {
+  if (!IS_MAIN) return;
+  const list = RK.getRKProUsers();
+  if (!list[idx]) return;
+  list[idx].grade = grade;
+  RK.saveRKProUsers(list);
+  toast('✓ グレードを変更しました');
+}
+
+/* ── SETTINGS ── */
+function renderSettings() {
+  document.getElementById('current-admin-id').value = localStorage.getItem('rk_adminId') || 'rootadmin';
+  document.getElementById('current-sub-id').value   = localStorage.getItem('rk_subAdminId') || 'subadmin';
+  if (IS_MAIN) renderTOTPStatus();
+  /* EmailJS設定を読み込む */
+  const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
+  document.getElementById('ejs-service-id').value      = ejsCfg.serviceId || '';
+  document.getElementById('ejs-verify-template').value = ejsCfg.verifyTemplateId || '';
+  document.getElementById('ejs-reset-template').value  = ejsCfg.resetTemplateId || '';
+  document.getElementById('ejs-public-key').value      = ejsCfg.publicKey || '';
+}
+
+function saveEmailJSConfig() {
+  const cfg = {
+    serviceId:        document.getElementById('ejs-service-id').value.trim(),
+    verifyTemplateId: document.getElementById('ejs-verify-template').value.trim(),
+    resetTemplateId:  document.getElementById('ejs-reset-template').value.trim(),
+    publicKey:        document.getElementById('ejs-public-key').value.trim(),
+  };
+  localStorage.setItem('rk_emailjs_config', JSON.stringify(cfg));
+  toast('✓ EmailJS設定を保存しました');
+}
+
+async function testEmailJS() {
+  const toEmail = document.getElementById('ejs-test-email').value.trim();
+  if (!toEmail) { toast('テスト先メールアドレスを入力してください', 'error'); return; }
+  const cfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
+  if (!cfg.serviceId || !cfg.verifyTemplateId || !cfg.publicKey) {
+    toast('ServiceID・テンプレートID・PublicKeyを設定してください', 'error'); return;
+  }
+  const statusEl = document.getElementById('ejs-status');
+  statusEl.textContent = '送信中...';
+  statusEl.style.display = 'block';
+  statusEl.style.background = 'rgba(88,166,255,.12)';
+  statusEl.style.color = '#58a6ff';
+  statusEl.style.border = '1px solid rgba(88,166,255,.3)';
+  try {
+    await emailjs.init(cfg.publicKey);
+    await emailjs.send(cfg.serviceId, cfg.verifyTemplateId, {
+      to_email: toEmail,
+      verify_url: location.origin + '/register.html?verify=TEST_TOKEN&email=' + encodeURIComponent(toEmail),
+      user_name: 'テストユーザー'
+    });
+    statusEl.textContent = '✓ テストメールを送信しました';
+    statusEl.style.background = 'rgba(63,185,80,.12)';
+    statusEl.style.color = '#3fb950';
+    statusEl.style.border = '1px solid rgba(63,185,80,.3)';
+  } catch(e) {
+    statusEl.textContent = '✗ 送信失敗: ' + (e.text || e.message || JSON.stringify(e));
+    statusEl.style.background = 'rgba(248,81,73,.12)';
+    statusEl.style.color = '#f85149';
+    statusEl.style.border = '1px solid rgba(248,81,73,.35)';
+  }
+}
+
+/* ── TOTP ユーティリティ（設定画面用） ── */
+function _admB32dec(s) {
+  const C = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  s = s.replace(/=+$/, '').toUpperCase();
+  let bits = 0, val = 0; const out = [];
+  for (const ch of s) {
+    const idx = C.indexOf(ch); if (idx < 0) continue;
+    val = (val << 5) | idx; bits += 5;
+    if (bits >= 8) { out.push((val >>> (bits-8)) & 0xff); bits -= 8; }
+  }
+  return new Uint8Array(out);
+}
+async function _admTotpAt(secret, counter) {
+  const key = await crypto.subtle.importKey('raw', _admB32dec(secret), { name:'HMAC', hash:'SHA-1' }, false, ['sign']);
+  const msg = new Uint8Array(8); let c = counter;
+  for (let i = 7; i >= 0; i--) { msg[i] = c & 0xff; c = Math.floor(c/256); }
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, msg));
+  const off = sig[19] & 0xf;
+  return String(((sig[off]&0x7f)<<24|(sig[off+1]&0xff)<<16|(sig[off+2]&0xff)<<8|(sig[off+3]&0xff)) % 1000000).padStart(6,'0');
+}
+async function _admVerifyTOTP(secret, code) {
+  const t = Math.floor(Date.now() / 30000);
+  for (const d of [-1, 0, 1]) {
+    if (await _admTotpAt(secret, t+d) === String(code).padStart(6,'0')) return true;
+  }
+  return false;
+}
+
+function renderTOTPStatus() {
+  const secret  = localStorage.getItem('rk_totpSecret');
+  const adminId = localStorage.getItem('rk_adminId') || 'rootadmin';
+  const el = document.getElementById('totp-status-area');
+  if (!el) return;
+  if (secret) {
+    const otpUrl   = `otpauth://totp/ROOT%E7%AB%B6%E8%BC%AA:${encodeURIComponent(adminId)}?secret=${secret}&issuer=ROOT%E7%AB%B6%E8%BC%AA`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(otpUrl)}`;
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <span style="display:inline-block;background:rgba(63,185,80,.18);color:#3fb950;padding:3px 12px;border-radius:10px;font-size:.78rem;font-weight:bold;">✓ 有効</span>
+        <span style="font-size:.75rem;color:var(--text-dim);">2段階認証は有効です</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-dim);margin-bottom:10px;line-height:1.7;">
+        認証アプリを変更する場合は下記QRコードを再度スキャンしてください。<br>
+        シークレットキー: <code style="background:var(--dark3);padding:2px 6px;border-radius:4px;font-size:.75rem;">${secret}</code>
+      </div>
+      <img src="${qrApiUrl}" alt="TOTP QR" style="display:block;margin:0 auto 14px;border-radius:8px;border:4px solid #fff;">
+      <hr style="border:none;border-top:1px solid var(--border);margin-bottom:14px;">
+      <div style="font-size:.78rem;font-weight:bold;color:var(--text-dim);margin-bottom:8px;">2段階認証を無効にする</div>
+      <div class="form-group">
+        <label class="field-label">現在の認証コード（6桁）で確認</label>
+        <input type="text" id="totp-disable-code" placeholder="000000" maxlength="6" inputmode="numeric"
+          style="width:140px;letter-spacing:4px;text-align:center;">
+      </div>
+      <div id="totp-disable-err" style="display:none;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.35);color:#f85149;border-radius:6px;padding:8px 12px;font-size:.78rem;margin-bottom:8px;">認証コードが正しくありません</div>
+      <button class="btn btn-sm" style="background:#7f1d1d;color:#fff;" onclick="disableTOTP()">無効にする</button>`;
+  } else {
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <span style="display:inline-block;background:rgba(139,148,158,.15);color:#8b949e;padding:3px 12px;border-radius:10px;font-size:.78rem;font-weight:bold;">無効</span>
+        <span style="font-size:.75rem;color:var(--text-dim);">2段階認証は設定されていません</span>
+      </div>
+      <p style="font-size:.78rem;color:var(--text-dim);margin-bottom:14px;line-height:1.7;">
+        Google Authenticator / Authy などの認証アプリを使って<br>2段階認証を有効にします。
+      </p>
+      <button class="btn btn-primary btn-sm" onclick="startTOTPSetup()">セットアップを開始する</button>
+      <div id="totp-setup-area" style="display:none;margin-top:16px;"></div>`;
+  }
+}
+
+async function startTOTPSetup() {
+  const secret   = RK.generateTOTPSecret();
+  const adminId  = localStorage.getItem('rk_adminId') || 'rootadmin';
+  const otpUrl   = `otpauth://totp/ROOT%E7%AB%B6%E8%BC%AA:${encodeURIComponent(adminId)}?secret=${secret}&issuer=ROOT%E7%AB%B6%E8%BC%AA`;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(otpUrl)}`;
+  /* 一時的にセッションストレージに保管（確認後に本保存） */
+  sessionStorage.setItem('rk_totpSetupSecret', secret);
+  document.getElementById('totp-setup-area').style.display = 'block';
+  document.getElementById('totp-setup-area').innerHTML = `
+    <div style="font-size:.78rem;color:var(--text-dim);margin-bottom:10px;line-height:1.7;">
+      ① 認証アプリでQRコードをスキャンしてください。<br>
+      ② アプリに表示された6桁のコードを入力して確認してください。
+    </div>
+    <img src="${qrApiUrl}" alt="TOTP QR" style="display:block;margin:0 auto 12px;border-radius:8px;border:4px solid #fff;">
+    <div style="font-size:.72rem;color:var(--text-dim);text-align:center;margin-bottom:14px;">
+      手動入力: <code style="background:var(--dark3);padding:2px 6px;border-radius:4px;">${secret}</code>
+    </div>
+    <div class="form-group">
+      <label class="field-label">認証コード（6桁）で確認</label>
+      <input type="text" id="totp-confirm-code" placeholder="000000" maxlength="6" inputmode="numeric"
+        style="width:140px;letter-spacing:4px;text-align:center;">
+    </div>
+    <div id="totp-confirm-err" style="display:none;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.35);color:#f85149;border-radius:6px;padding:8px 12px;font-size:.78rem;margin-bottom:8px;">コードが正しくありません。アプリのスキャンを確認してください。</div>
+    <button class="btn btn-success btn-sm" onclick="confirmTOTPSetup()">有効にする</button>`;
+}
+
+async function confirmTOTPSetup() {
+  const secret = sessionStorage.getItem('rk_totpSetupSecret');
+  const code   = document.getElementById('totp-confirm-code').value.trim();
+  const errEl  = document.getElementById('totp-confirm-err');
+  errEl.style.display = 'none';
+  if (!secret || code.length !== 6) { errEl.style.display = 'block'; return; }
+  const ok = await _admVerifyTOTP(secret, code);
+  if (!ok) { errEl.style.display = 'block'; return; }
+  localStorage.setItem('rk_totpSecret', secret);
+  sessionStorage.removeItem('rk_totpSetupSecret');
+  toast('✓ 2段階認証を有効にしました');
+  renderTOTPStatus();
+}
+
+async function disableTOTP() {
+  const secret = localStorage.getItem('rk_totpSecret');
+  const code   = document.getElementById('totp-disable-code').value.trim();
+  const errEl  = document.getElementById('totp-disable-err');
+  errEl.style.display = 'none';
+  if (!secret || code.length !== 6) { errEl.style.display = 'block'; return; }
+  const ok = await _admVerifyTOTP(secret, code);
+  if (!ok) { errEl.style.display = 'block'; return; }
+  if (!confirm('2段階認証を無効にします。よろしいですか？')) return;
+  localStorage.removeItem('rk_totpSecret');
+  toast('✓ 2段階認証を無効にしました');
+  renderTOTPStatus();
+}
+function changeAdminId() {
+  const newId = document.getElementById('new-admin-id').value.trim();
+  if (!newId || newId.length < 4) { toast('IDは4文字以上で入力してください', 'error'); return; }
+  localStorage.setItem('rk_adminId', newId);
+  toast('✓ 管理者IDを変更しました');
+  renderSettings();
+}
+function changeSubAdminId() {
+  const newId = document.getElementById('new-sub-id').value.trim();
+  if (!newId || newId.length < 4) { toast('IDは4文字以上で入力してください', 'error'); return; }
+  const mainId = localStorage.getItem('rk_adminId') || 'rootadmin';
+  if (newId === mainId) { toast('メイン管理者IDと同じIDは使用できません', 'error'); return; }
+  localStorage.setItem('rk_subAdminId', newId);
+  document.getElementById('new-sub-id').value = '';
+  toast('✓ サブ管理者IDを変更しました');
+  renderSettings();
+}
+async function changeSubAdminPassword() {
+  const nw  = document.getElementById('new-sub-pw').value;
+  const nw2 = document.getElementById('new-sub-pw2').value;
+  if (nw.length < 8) { toast('パスワードは8文字以上', 'error'); return; }
+  if (nw !== nw2)    { toast('パスワードが一致しません', 'error'); return; }
+  const newHash = await RK.hashPassword(nw);
+  localStorage.setItem('rk_subAdminHash', newHash);
+  /* 既存のサブ管理者セッションを強制ログアウト */
+  localStorage.removeItem('rk_subAdminToken');
+  sessionStorage.removeItem('rk_subAdminToken');
+  document.getElementById('new-sub-pw').value  = '';
+  document.getElementById('new-sub-pw2').value = '';
+  toast('✓ サブ管理者パスワードを変更しました（既存セッションを無効化）');
+}
+async function changePassword() {
+  const cur  = document.getElementById('current-pw').value;
+  const nw   = document.getElementById('new-pw').value;
+  const nw2  = document.getElementById('new-pw2').value;
+  if (nw.length < 8) { toast('パスワードは8文字以上', 'error'); return; }
+  if (nw !== nw2)    { toast('パスワードが一致しません', 'error'); return; }
+  const curHash = await RK.hashPassword(cur);
+  const stored  = localStorage.getItem('rk_adminHash');
+  if (curHash !== stored) { toast('現在のパスワードが違います', 'error'); return; }
+  const newHash = await RK.hashPassword(nw);
+  localStorage.setItem('rk_adminHash', newHash);
+  document.getElementById('current-pw').value = '';
+  document.getElementById('new-pw').value = '';
+  document.getElementById('new-pw2').value = '';
+  toast('✓ パスワードを変更しました');
+}
+
+/* ── DATA EXPORT/IMPORT ── */
+/* ── 完全バックアップ ── */
+function fullBackup() {
+  const backup = { _version: 2, _savedAt: new Date().toISOString(), keys: {} };
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('rk_')) {
+      try { backup.keys[k] = JSON.parse(localStorage.getItem(k)); }
+      catch { backup.keys[k] = localStorage.getItem(k); }
+    }
+  }
+  const count = Object.keys(backup.keys).length;
+  const json  = JSON.stringify(backup, null, 2);
+  const blob  = new Blob([json], { type: 'application/json' });
+  const a     = document.createElement('a');
+  a.href      = URL.createObjectURL(blob);
+  a.download  = `rk-full-backup-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;
+  a.click();
+  const el = document.getElementById('backup-status');
+  el.textContent = `✓ ${count} 件のデータをバックアップしました`;
+  el.style.background = 'rgba(63,185,80,.12)';
+  el.style.border = '1px solid rgba(63,185,80,.3)';
+  el.style.color = '#3fb950';
+  el.style.display = 'block';
+}
+
+function fullRestore() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const el = document.getElementById('backup-status');
+      try {
+        const backup = JSON.parse(ev.target.result);
+        if (!backup.keys) { throw new Error('無効なバックアップファイルです'); }
+        if (!confirm(`バックアップ（${backup._savedAt?.slice(0,19).replace('T',' ')} 保存）から復元しますか？\n現在のデータは上書きされます。`)) return;
+        let count = 0;
+        Object.entries(backup.keys).forEach(([k, v]) => {
+          localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
+          count++;
+        });
+        /* RK キャッシュをリセット */
+        RK._cache.data = null;
+        RK._cache.allUsers = null;
+        RK._cache.dynamicPromos = null;
+        RK._cache.bbs = {};
+        currentData = RK.getData();
+        el.textContent = `✓ ${count} 件のデータを復元しました。ページを再読み込みします…`;
+        el.style.background = 'rgba(63,185,80,.12)';
+        el.style.border = '1px solid rgba(63,185,80,.3)';
+        el.style.color = '#3fb950';
+        el.style.display = 'block';
+        setTimeout(() => location.reload(), 1500);
+      } catch(err) {
+        el.textContent = '✗ 復元失敗: ' + err.message;
+        el.style.background = 'rgba(248,81,73,.12)';
+        el.style.border = '1px solid rgba(248,81,73,.35)';
+        el.style.color = '#f85149';
+        el.style.display = 'block';
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function exportData() {
+  const json = JSON.stringify(RK.getData(), null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `root-keirin-data-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.nextRaces || !data.races) { toast('無効なデータ形式です', 'error'); return; }
+        RK.saveData(data);
+        currentData = data;
+        toast('✓ インポートしました');
+        refreshDashboard();
+      } catch { toast('JSONの解析に失敗しました', 'error'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+function resetData() {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  RK.saveData(RK.defaultData);
+  currentData = RK.defaultData;
+  toast('✓ データをリセットしました');
+  renderDashboard();
+}
+function resetAllUsers() {
+  if (!IS_MAIN) { toast('この操作はメイン管理者のみ実行できます', 'error'); return; }
+  if (!confirm('登録済みの全アカウントデータを削除しますか？\nこの操作は元に戻せません。')) return;
+
+  /* ユーザー台帳・セッション・お問い合わせ・賞金待ち */
+  RK.saveAllUsers({});
+  ['rk_user', 'rk_contacts', 'rk_ch7_prizes',
+   /* 旧グローバルキー（移行前の残骸） */
+   'rk_premium_expires', 'rk_premium_sub_id', 'rk_premium_plan', 'rk_purchased'
+  ].forEach(k => localStorage.removeItem(k));
+
+  /* プレフィックス一致キーを列挙して削除 */
+  const remove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('rk_purchased_') ||
+        k.startsWith('rk_verify_')    ||
+        k.startsWith('rk_promo_')) {
+      remove.push(k);
+    }
+  }
+  remove.forEach(k => localStorage.removeItem(k));
+
+  toast('✓ 全ユーザーデータを初期化しました');
+  renderDashboard();
+}
+
+/* ── LOGOUT ── */
+function doLogout() {
+  RK.adminLogout();
+  RK.subAdminLogout();
+  location.href = 'admin-r9x2k.html';
+}
+
+/* ── ロールベースUI制御 ── */
+function applyRoleRestrictions() {
+  const badge = document.getElementById('role-badge');
+  if (IS_MAIN) {
+    badge.textContent = 'メイン管理者';
+    badge.style.cssText = 'background:rgba(31,111,235,.3);color:#58a6ff;font-size:.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;';
+  } else {
+    badge.textContent = 'サブ管理者';
+    badge.style.cssText = 'background:rgba(63,185,80,.2);color:#3fb950;font-size:.68rem;padding:2px 8px;border-radius:10px;font-weight:bold;';
+    /* サイドバー・ボタン等の非表示 */
+    document.querySelectorAll('[data-main-only]').forEach(el => el.style.display = 'none');
+  }
+}
+
+/* ── Init ── */
+applyRoleRestrictions();
+(async () => {
+  await RK.init();
+  renderDashboard();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ログイン | ROOT競輪</title>
+<style>
+:root{--main-blue:#0047AB;--sub-dark:#001f4d;--accent-yellow:#FFEB3B;--register-orange:#FF9800;--premium-gold:#c8a400;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:var(--bg-gray,#f4f7f9);color:#333;min-height:100vh;display:flex;flex-direction:column;}
+header{background:var(--main-blue);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.site-title{font-weight:900;font-size:1rem;color:#fff;text-decoration:none;}
+.btn-back{color:rgba(255,255,255,.8);text-decoration:none;font-size:.82rem;}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;}
+.logo-area{text-align:center;margin-bottom:28px;}
+.logo-area .logo{font-size:2.5rem;margin-bottom:6px;}
+.logo-area h1{font-size:1.2rem;font-weight:900;color:var(--main-blue);}
+.logo-area p{font-size:.8rem;color:#888;margin-top:4px;}
+.form-card{background:#fff;border-radius:16px;padding:24px 20px;width:100%;max-width:400px;box-shadow:0 4px 16px rgba(0,0,0,.1);}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:.8rem;font-weight:bold;color:#555;margin-bottom:6px;}
+input[type="email"],input[type="password"],input[type="text"]{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:.9rem;outline:none;transition:border-color .2s;}
+input:focus{border-color:var(--main-blue);box-shadow:0 0 0 3px rgba(0,71,171,.12);}
+.btn-submit{width:100%;background:var(--main-blue);color:#fff;border:none;padding:14px;border-radius:20px;font-size:.95rem;font-weight:bold;cursor:pointer;margin-top:4px;}
+.btn-submit:hover{background:var(--sub-dark);}
+.btn-secondary{width:100%;background:#fff;color:var(--main-blue);border:2px solid var(--main-blue);padding:12px;border-radius:20px;font-size:.9rem;font-weight:bold;cursor:pointer;margin-top:8px;}
+.btn-secondary:hover{background:#f0f4ff;}
+.form-links{margin-top:14px;text-align:center;font-size:.78rem;color:#888;}
+.form-links a{color:var(--main-blue);text-decoration:none;}
+.error-msg{color:#e53935;font-size:.8rem;text-align:center;margin-top:10px;display:none;}
+.error-msg.show{display:block;}
+.success-msg{color:#2e7d32;font-size:.8rem;text-align:center;margin-top:10px;display:none;}
+.success-msg.show{display:block;}
+/* パスワードリセット関連 */
+.section-hidden{display:none;}
+.reset-url-box{background:#f0f4ff;border:1px solid #c5d3f0;border-radius:10px;padding:12px;margin-top:12px;font-size:.75rem;word-break:break-all;color:#333;line-height:1.5;}
+.reset-url-label{font-size:.75rem;color:#555;font-weight:bold;margin-bottom:6px;}
+.section-title{font-size:.95rem;font-weight:bold;color:var(--main-blue);margin-bottom:16px;}
+.divider{border:none;border-top:1px solid #eee;margin:16px 0;}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="btn-back">← 戻る</a>
+  <a href="index.html" class="site-title">ROOT競輪</a>
+  <div></div>
+</header>
+
+<div class="main">
+  <div class="logo-area">
+    <div class="logo">🏁</div>
+    <h1>ROOT競輪</h1>
+    <p id="main-subtitle">ログインして予想を始めよう</p>
+  </div>
+
+  <!-- ===== ログインフォーム ===== -->
+  <div class="form-card" id="section-login">
+    <div class="form-group">
+      <label>メールアドレス</label>
+      <input type="email" id="email" placeholder="example@mail.com">
+    </div>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input type="password" id="password" placeholder="パスワードを入力">
+    </div>
+    <button class="btn-submit" onclick="doLogin()">ログイン</button>
+    <div class="error-msg" id="error-msg">メールアドレスまたはパスワードが違います</div>
+
+    <!-- 未認証ユーザー向け再送ボタン -->
+    <div id="resend-verify-wrap" style="display:none;margin-top:10px;padding:10px;background:#fff8e1;border:1px solid #ffe082;border-radius:10px;text-align:center;">
+      <p style="font-size:.75rem;color:#795548;margin-bottom:8px;">認証メールを再送しますか？</p>
+      <input type="hidden" id="resend-verify-email">
+      <button onclick="resendVerifyEmail()" style="background:#FF9800;color:#fff;border:none;padding:8px 20px;border-radius:14px;font-size:.82rem;font-weight:bold;cursor:pointer;">認証メールを再送する</button>
+      <div id="resend-verify-msg" style="display:none;font-size:.75rem;color:#388e3c;margin-top:6px;"></div>
+    </div>
+
+    <div class="form-links" style="margin-top:16px;">
+      <a href="#" onclick="showForgot();return false;">パスワードをお忘れの方はこちら</a><br><br>
+      アカウントをお持ちでない方は<br>
+      <a href="register.html">新規会員登録（無料）</a>
+    </div>
+  </div>
+
+  <!-- ===== パスワードリセット申請フォーム ===== -->
+  <div class="form-card section-hidden" id="section-forgot">
+    <div class="section-title">パスワードを忘れた方</div>
+    <p style="font-size:.8rem;color:#666;margin-bottom:16px;line-height:1.6;">
+      登録済みのメールアドレスを入力してください。<br>
+      パスワード再設定用のURLを発行します。
+    </p>
+    <div class="form-group">
+      <label>メールアドレス</label>
+      <input type="email" id="forgot-email" placeholder="example@mail.com">
+    </div>
+    <button class="btn-submit" onclick="doForgot()">再設定URLを発行</button>
+    <div class="error-msg" id="forgot-error">このメールアドレスは登録されていません</div>
+
+    <!-- メール送信完了メッセージ -->
+    <div id="forgot-sent-msg" style="display:none;margin-top:12px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:12px;text-align:center;">
+      <p style="font-size:.82rem;color:#2e7d32;font-weight:bold;margin-bottom:4px;">📧 メールを送信しました</p>
+      <p style="font-size:.75rem;color:#555;line-height:1.6;">メールに記載のリンクをクリックしてパスワードを再設定してください。</p>
+    </div>
+
+    <!-- URL表示エリア（フォールバック） -->
+    <div id="forgot-url-area" class="section-hidden" style="margin-top:12px;">
+      <p class="reset-url-label">以下のURLにアクセスしてパスワードを再設定してください：</p>
+      <div class="reset-url-box" id="forgot-url-box"></div>
+      <p style="font-size:.72rem;color:#999;margin-top:8px;">※ このURLは同じブラウザ・端末でアクセスしてください</p>
+    </div>
+
+    <hr class="divider">
+    <button class="btn-secondary" onclick="showLogin()">ログイン画面に戻る</button>
+  </div>
+
+  <!-- ===== 新パスワード設定フォーム ===== -->
+  <div class="form-card section-hidden" id="section-reset">
+    <div class="section-title">新しいパスワードを設定</div>
+    <div class="form-group">
+      <label>新しいパスワード</label>
+      <input type="password" id="new-password" placeholder="6文字以上">
+    </div>
+    <div class="form-group">
+      <label>新しいパスワード（確認）</label>
+      <input type="password" id="new-password2" placeholder="もう一度入力">
+    </div>
+    <button class="btn-submit" onclick="doReset()">パスワードを変更する</button>
+    <div class="error-msg" id="reset-error"></div>
+    <div class="success-msg" id="reset-success">パスワードを変更しました。ログイン画面に移動します…</div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* ===== ログイン ===== */
+async function doLogin() {
+  const email    = document.getElementById('email').value.trim().toLowerCase();
+  const password = document.getElementById('password').value;
+  const errEl    = document.getElementById('error-msg');
+  errEl.classList.remove('show');
+
+  if (!email || !password) { errEl.classList.add('show'); return; }
+
+  const allUsers = RK.getAllUsers();
+  const stored   = allUsers[email];
+  if (!stored) { errEl.classList.add('show'); return; }
+
+  /* ハッシュ比較（旧平文パスワードとの後方互換も維持） */
+  const hashedInput = await RK.hashPassword(password);
+  const storedPw    = stored.password || '';
+  const isPwMatch   = (storedPw === hashedInput) || (storedPw === password);
+
+  if (!isPwMatch) {
+    errEl.classList.add('show');
+    return;
+  }
+
+  /* 旧平文パスワードならこのタイミングでハッシュ化してアップグレード */
+  if (storedPw === password) {
+    stored.password = hashedInput;
+    allUsers[email] = stored;
+    RK.saveAllUsers(allUsers);
+  }
+
+  /* メール認証チェック */
+  if (!stored.emailVerified) {
+    errEl.textContent = 'メール認証が完了していません。登録時に送信したメールのリンクをクリックしてください。';
+    errEl.classList.add('show');
+    /* 認証メール再送ボタンを表示 */
+    document.getElementById('resend-verify-wrap').style.display = 'block';
+    document.getElementById('resend-verify-email').value = email;
+    return;
+  }
+
+  /* パスワードをセッションに含めずロード */
+  const { password: _pw, ...sessionUser } = stored;
+  RK.saveUser(sessionUser);
+
+  const params = new URLSearchParams(location.search);
+  location.href = params.get('redirect') || 'index.html';
+}
+
+/* Enter key（ログインフォーム表示中のみ） */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (!document.getElementById('section-login').classList.contains('section-hidden')) doLogin();
+});
+
+/* 既にログイン済みなら飛ばす */
+if (RK.getUser()) location.href = 'index.html';
+
+/* ===== 画面切替 ===== */
+function showSection(id) {
+  ['section-login','section-forgot','section-reset'].forEach(s => {
+    document.getElementById(s).classList.add('section-hidden');
+  });
+  document.getElementById(id).classList.remove('section-hidden');
+}
+function showLogin()  { showSection('section-login'); }
+function showForgot() {
+  showSection('section-forgot');
+  document.getElementById('forgot-error').classList.remove('show');
+  document.getElementById('forgot-url-area').classList.add('section-hidden');
+  document.getElementById('forgot-sent-msg').style.display = 'none';
+}
+
+/* ===== 認証メール再送 ===== */
+async function resendVerifyEmail() {
+  const email = document.getElementById('resend-verify-email').value;
+  if (!email) return;
+
+  const msgEl = document.getElementById('resend-verify-msg');
+  msgEl.style.display = 'none';
+
+  /* 既存トークンがあれば再利用、なければ新規生成 */
+  let token = null;
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('rk_verify_') && localStorage.getItem(k) === email) {
+      token = k.replace('rk_verify_', '');
+      break;
+    }
+  }
+  if (!token) {
+    token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map(b => b.toString(16).padStart(2,'0')).join('');
+    localStorage.setItem('rk_verify_' + token, email);
+  }
+
+  const verifyURL = location.origin + '/register.html?verify=' + token + '&email=' + encodeURIComponent(email);
+  const allUsers = RK.getAllUsers();
+  const userName = allUsers[email]?.name || '';
+
+  const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
+  if (ejsCfg.serviceId && ejsCfg.verifyTemplateId && ejsCfg.publicKey) {
+    try {
+      emailjs.init(ejsCfg.publicKey);
+      await emailjs.send(ejsCfg.serviceId, ejsCfg.verifyTemplateId, {
+        to_email: email,
+        verify_url: verifyURL,
+        user_name: userName
+      });
+      msgEl.textContent = '認証メールを再送しました。メールをご確認ください。';
+      msgEl.style.color = '#388e3c';
+    } catch(e) {
+      msgEl.textContent = '送信に失敗しました。しばらくしてから再試行してください。';
+      msgEl.style.color = '#e53935';
+    }
+  } else {
+    /* EmailJS未設定: URLを直接表示 */
+    msgEl.innerHTML = '認証URL: <a href="' + verifyURL + '" style="word-break:break-all;font-size:.7rem;">' + verifyURL + '</a>';
+    msgEl.style.color = '#555';
+  }
+  msgEl.style.display = 'block';
+}
+
+/* ===== パスワードリセット申請 ===== */
+async function doForgot() {
+  const email  = document.getElementById('forgot-email').value.trim().toLowerCase();
+  const errEl  = document.getElementById('forgot-error');
+  errEl.classList.remove('show');
+  document.getElementById('forgot-url-area').classList.add('section-hidden');
+
+  if (!email) { errEl.classList.add('show'); return; }
+
+  const allUsers = RK.getAllUsers();
+  if (!allUsers[email]) {
+    errEl.classList.add('show');
+    return;
+  }
+
+  /* トークン生成（暗号的乱数） → localStorage保存 */
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+  localStorage.setItem('rk_reset_' + token, email);
+
+  /* リセットURL生成 */
+  const base = location.href.split('?')[0];
+  const url  = base + '?reset=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
+
+  /* ボタン無効化 */
+  const forgotBtn = document.querySelector('#section-forgot .btn-submit');
+  if (forgotBtn) { forgotBtn.disabled = true; forgotBtn.textContent = '送信中...'; }
+
+  /* EmailJSで送信を試みる */
+  const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
+  let emailSent = false;
+  if (ejsCfg.serviceId && ejsCfg.resetTemplateId && ejsCfg.publicKey) {
+    try {
+      emailjs.init(ejsCfg.publicKey);
+      await emailjs.send(ejsCfg.serviceId, ejsCfg.resetTemplateId, {
+        to_email: email,
+        reset_url: url
+      });
+      emailSent = true;
+    } catch(e) {
+      console.warn('EmailJS reset送信エラー:', e);
+    }
+  }
+
+  if (forgotBtn) { forgotBtn.disabled = false; forgotBtn.textContent = '再設定URLを発行'; }
+
+  if (emailSent) {
+    /* メール送信成功 → 「メールを確認してください」表示 */
+    document.getElementById('forgot-sent-msg').style.display = 'block';
+  } else {
+    /* EmailJS未設定 or エラー → フォールバックでURL表示 */
+    document.getElementById('forgot-url-box').textContent = url;
+    document.getElementById('forgot-url-area').classList.remove('section-hidden');
+  }
+}
+
+/* ===== パスワード再設定（URLパラメータ処理） ===== */
+const _params = new URLSearchParams(location.search);
+const _resetToken = _params.get('reset');
+const _resetEmail = (_params.get('email') || '').toLowerCase();
+
+if (_resetToken && _resetEmail) {
+  /* トークン照合 */
+  const storedEmail = localStorage.getItem('rk_reset_' + _resetToken);
+  if (storedEmail && storedEmail.toLowerCase() === _resetEmail) {
+    /* 新パスワード入力フォームを表示 */
+    document.getElementById('main-subtitle').textContent = 'パスワードを再設定';
+    showSection('section-reset');
+  } else {
+    /* 無効なトークン → ログイン画面に戻す */
+    showSection('section-login');
+    document.getElementById('error-msg').textContent = 'リセットリンクが無効または期限切れです';
+    document.getElementById('error-msg').classList.add('show');
+  }
+}
+
+async function doReset() {
+  const pw1   = document.getElementById('new-password').value;
+  const pw2   = document.getElementById('new-password2').value;
+  const errEl = document.getElementById('reset-error');
+  errEl.classList.remove('show');
+
+  if (pw1.length < 6) {
+    errEl.textContent = 'パスワードは6文字以上で入力してください';
+    errEl.classList.add('show');
+    return;
+  }
+  if (pw1 !== pw2) {
+    errEl.textContent = 'パスワードが一致しません';
+    errEl.classList.add('show');
+    return;
+  }
+
+  /* rk_all_users のパスワードをハッシュ化して更新 */
+  const allUsers = RK.getAllUsers();
+  if (!allUsers[_resetEmail]) {
+    errEl.textContent = 'アカウントが見つかりません';
+    errEl.classList.add('show');
+    return;
+  }
+  const hashedPw = await RK.hashPassword(pw1);
+  allUsers[_resetEmail].password = hashedPw;
+  RK.saveAllUsers(allUsers);
+
+  /* トークン削除 */
+  localStorage.removeItem('rk_reset_' + _resetToken);
+
+  /* 完了表示 → ログイン画面へ */
+  document.getElementById('reset-success').classList.add('show');
+  setTimeout(() => {
+    location.href = 'login.html';
+  }, 2000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新規登録 | ROOT競輪</title>
+<style>
+:root{--main-blue:#0047AB;--sub-dark:#001f4d;--accent-yellow:#FFEB3B;--register-orange:#FF9800;--premium-gold:#c8a400;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:#f4f7f9;color:#333;min-height:100vh;display:flex;flex-direction:column;}
+header{background:var(--main-blue);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.site-title{font-weight:900;font-size:1rem;color:#fff;text-decoration:none;}
+.btn-back{color:rgba(255,255,255,.8);text-decoration:none;font-size:.82rem;}
+.main{flex:1;padding:24px 20px;}
+
+/* Plan Toggle */
+.plan-toggle{display:flex;background:#fff;border-radius:30px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.1);margin:0 auto 24px;max-width:340px;}
+.plan-toggle button{flex:1;border:none;background:none;padding:10px;border-radius:26px;font-size:.82rem;font-weight:bold;cursor:pointer;color:#888;transition:all .2s;}
+.plan-toggle button.active{background:var(--main-blue);color:#fff;}
+.plan-toggle button.active.premium{background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;}
+
+/* Plan badge */
+.plan-banner{text-align:center;padding:14px;border-radius:12px;margin-bottom:20px;font-size:.85rem;font-weight:bold;}
+.plan-banner.free{background:#e3f2fd;color:var(--main-blue);}
+.plan-banner.premium{background:linear-gradient(135deg,rgba(200,164,0,.15),rgba(245,216,0,.08));border:1px solid var(--premium-gold);color:var(--premium-gold);}
+
+.form-card{background:#fff;border-radius:16px;padding:22px 18px;max-width:420px;margin:0 auto;box-shadow:0 4px 14px rgba(0,0,0,.09);}
+.form-group{margin-bottom:14px;}
+label{display:block;font-size:.8rem;font-weight:bold;color:#555;margin-bottom:5px;}
+input[type="email"],input[type="password"],input[type="text"]{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:.9rem;outline:none;transition:border-color .2s;}
+input:focus{border-color:var(--main-blue);box-shadow:0 0 0 3px rgba(0,71,171,.12);}
+.hint{font-size:.7rem;color:#aaa;margin-top:3px;}
+.terms{font-size:.75rem;color:#888;margin:12px 0;line-height:1.6;}
+.terms a{color:var(--main-blue);}
+.btn-submit{width:100%;background:var(--main-blue);color:#fff;border:none;padding:14px;border-radius:20px;font-size:.95rem;font-weight:bold;cursor:pointer;margin-top:4px;}
+.btn-submit.premium{background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;}
+.form-links{margin-top:16px;text-align:center;font-size:.78rem;color:#888;}
+.form-links a{color:var(--main-blue);text-decoration:none;}
+.error-msg{color:#e53935;font-size:.8rem;text-align:center;margin-top:10px;display:none;}
+.error-msg.show{display:block;}
+
+/* Premium benefits strip */
+.premium-strip{background:linear-gradient(135deg,rgba(200,164,0,.12),rgba(245,216,0,.06));border:1px solid rgba(200,164,0,.3);border-radius:12px;padding:14px;margin-bottom:16px;display:none;}
+.premium-strip.show{display:block;}
+.premium-strip h4{color:var(--premium-gold);font-size:.85rem;font-weight:bold;margin-bottom:8px;}
+.premium-strip ul{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.premium-strip li{font-size:.78rem;color:#666;display:flex;align-items:center;gap:6px;}
+.premium-strip li::before{content:"✓";color:var(--premium-gold);font-weight:bold;}
+
+/* Credit card section */
+.credit-section{display:none;}
+.credit-section.show{display:block;}
+.card-icons{display:flex;gap:8px;margin-bottom:12px;}
+.card-icon{background:#f0f0f0;border-radius:6px;padding:4px 10px;font-size:.72rem;font-weight:bold;color:#555;}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="btn-back">← 戻る</a>
+  <a href="index.html" class="site-title">ROOT競輪</a>
+  <div></div>
+</header>
+
+<div class="main">
+  <div class="plan-banner free" id="plan-banner-free">無料プランで始める</div>
+
+  <div class="form-card">
+    <div class="form-group">
+      <label>ニックネーム</label>
+      <input type="text" id="name" placeholder="競輪 太郎">
+    </div>
+    <div class="form-group">
+      <label>メールアドレス</label>
+      <input type="email" id="email" placeholder="example@mail.com">
+    </div>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input type="password" id="password" placeholder="8文字以上">
+      <div class="hint">半角英数字・記号 8文字以上</div>
+    </div>
+    <div class="form-group">
+      <label>パスワード（確認）</label>
+      <input type="password" id="password2" placeholder="パスワードを再入力">
+    </div>
+
+    <div class="terms">
+      登録することで<a href="#">利用規約</a>および<a href="#">プライバシーポリシー</a>に同意したものとみなされます。
+    </div>
+
+    <button class="btn-submit" id="submit-btn" onclick="doRegister()">無料で登録する</button>
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="form-links">
+      すでにアカウントをお持ちの方は<br>
+      <a href="login.html">ログインはこちら</a>
+    </div>
+  </div>
+
+  <!-- 仮登録完了後の案内 -->
+  <div id="verify-sent" style="display:none;max-width:420px;margin:0 auto;">
+    <div style="background:#fff;border-radius:16px;padding:26px 20px;box-shadow:0 4px 14px rgba(0,0,0,.09);text-align:center;">
+      <div style="font-size:2.4rem;margin-bottom:12px;">📧</div>
+      <h2 style="font-size:1rem;font-weight:bold;color:#333;margin-bottom:8px;">認証メールを送信しました</h2>
+      <p style="font-size:.82rem;color:#666;line-height:1.7;margin-bottom:16px;">
+        登録したメールアドレスに本登録リンクを送信しました。<br>
+        メールに記載のリンクをクリックして本登録を完了してください。
+      </p>
+      <p id="verify-sent-email" style="font-size:.85rem;font-weight:bold;color:var(--main-blue);margin-bottom:14px;"></p>
+      <!-- 迷惑メール注意 -->
+      <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:10px 14px;margin-bottom:14px;text-align:left;">
+        <p style="font-size:.78rem;color:#795548;font-weight:bold;margin-bottom:4px;">⚠️ メールが届かない場合</p>
+        <ul style="font-size:.74rem;color:#795548;line-height:1.8;padding-left:16px;">
+          <li><b>迷惑メールフォルダ</b>に振り分けられていないかご確認ください</li>
+          <li>「ROOT競輪」または送信元ドメインを<b>受信許可</b>に設定してください</li>
+          <li>数分待っても届かない場合は<a href="login.html" style="color:var(--main-blue);">ログイン画面</a>から再送できます</li>
+        </ul>
+      </div>
+      <div id="verify-fallback" style="display:none;background:#f4f7f9;border-radius:10px;padding:12px;margin-bottom:14px;text-align:left;">
+        <p style="font-size:.74rem;color:#888;margin-bottom:6px;">メールが届かない場合は以下のリンクをご利用ください：</p>
+        <div style="word-break:break-all;font-size:.73rem;color:#555;border:1px solid #ddd;border-radius:8px;padding:10px;" id="verify-url-box"></div>
+        <a id="verify-link" href="#" style="display:inline-block;margin-top:10px;background:var(--main-blue);color:#fff;padding:10px 22px;border-radius:16px;font-size:.85rem;font-weight:bold;text-decoration:none;">✉ 本登録を完了する</a>
+      </div>
+      <p style="font-size:.72rem;color:#aaa;">本登録が完了するまで一部機能が制限されます</p>
+    </div>
+  </div>
+
+  <!-- 認証メール再送 -->
+  <div id="resend-section" style="display:none;max-width:420px;margin:0 auto;">
+    <div style="background:#fff;border-radius:16px;padding:26px 20px;box-shadow:0 4px 14px rgba(0,0,0,.09);text-align:center;">
+      <div style="font-size:2.4rem;margin-bottom:12px;">✉️</div>
+      <h2 style="font-size:1rem;font-weight:bold;color:#333;margin-bottom:8px;">本登録が完了していません</h2>
+      <p style="font-size:.82rem;color:#666;line-height:1.7;margin-bottom:6px;">
+        登録メールに記載のリンクをクリックして<br>本登録を完了してください。
+      </p>
+      <p id="resend-email-label" style="font-size:.85rem;font-weight:bold;color:var(--main-blue);margin-bottom:14px;"></p>
+      <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:10px 14px;margin-bottom:16px;text-align:left;">
+        <p style="font-size:.78rem;color:#795548;font-weight:bold;margin-bottom:4px;">⚠️ メールが届かない場合</p>
+        <ul style="font-size:.74rem;color:#795548;line-height:1.8;padding-left:16px;">
+          <li><b>迷惑メールフォルダ</b>をご確認ください</li>
+          <li>数分待っても届かない場合は下記から再送できます</li>
+        </ul>
+      </div>
+      <button onclick="doResendVerify()"
+        style="background:var(--main-blue);color:#fff;border:none;padding:12px 32px;border-radius:20px;font-size:.92rem;font-weight:bold;cursor:pointer;margin-bottom:10px;">
+        認証メールを再送する
+      </button>
+      <div id="resend-result" style="display:none;margin-top:10px;border-radius:10px;padding:10px 14px;font-size:.8rem;line-height:1.6;"></div>
+      <div id="resend-fallback-url" style="display:none;background:#f4f7f9;border-radius:10px;padding:10px;margin-top:10px;word-break:break-all;font-size:.73rem;color:#555;border:1px solid #ddd;text-align:left;"></div>
+      <a id="resend-fallback-link" href="#" style="display:none;margin-top:8px;background:var(--main-blue);color:#fff;padding:10px 22px;border-radius:16px;font-size:.85rem;font-weight:bold;text-decoration:none;">✉ 本登録を完了する</a>
+    </div>
+  </div>
+
+  <!-- 本登録完了 -->
+  <div id="verify-done" style="display:none;max-width:420px;margin:0 auto;">
+    <div style="background:#fff;border-radius:16px;padding:26px 20px;box-shadow:0 4px 14px rgba(0,0,0,.09);text-align:center;">
+      <div style="font-size:2.4rem;margin-bottom:12px;">✅</div>
+      <h2 style="font-size:1rem;font-weight:bold;color:#333;margin-bottom:8px;">本登録が完了しました！</h2>
+      <p style="font-size:.82rem;color:#666;margin-bottom:20px;">すべての機能をご利用いただけます。</p>
+      <a href="index.html" style="display:inline-block;background:var(--main-blue);color:#fff;padding:12px 28px;border-radius:20px;font-size:.9rem;font-weight:bold;text-decoration:none;">ホームへ</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* ── ログイン済み未認証ユーザーは再送画面を表示 ── */
+RK.init(); /* バックグラウンドでFirebaseキャッシュを更新 */
+const _loggedInUser = RK.getUser();
+if (_loggedInUser && !_loggedInUser.emailVerified) {
+  document.querySelector('.form-card').style.display = 'none';
+  document.getElementById('plan-banner-free').style.display = 'none';
+  document.getElementById('resend-section').style.display = 'block';
+  document.getElementById('resend-email-label').textContent = _loggedInUser.email || '';
+}
+
+/* ── URLパラメータ処理（本登録リンク） ── */
+const params = new URLSearchParams(location.search);
+const verifyToken = params.get('verify');
+const verifyEmail = params.get('email');
+
+if (verifyToken && verifyEmail) {
+  const stored = localStorage.getItem('rk_verify_' + verifyToken);
+  if (stored === verifyEmail) {
+    /* トークン一致 → emailVerified = true にする */
+    const allUsers = RK.getAllUsers();
+    if (allUsers[verifyEmail]) {
+      allUsers[verifyEmail].emailVerified = true;
+      RK.saveAllUsers(allUsers);
+    }
+    /* 現在ログイン中のユーザーも更新 */
+    const u = RK.getUser();
+    if (u && u.email === verifyEmail) {
+      u.emailVerified = true;
+      RK.saveUser(u);
+    }
+    localStorage.removeItem('rk_verify_' + verifyToken);
+    document.getElementById('verify-done').style.display = 'block';
+  } else {
+    document.getElementById('verify-done').innerHTML =
+      '<div style="background:#fff;border-radius:16px;padding:26px 20px;box-shadow:0 4px 14px rgba(0,0,0,.09);text-align:center;color:#e53935;">認証リンクが無効または期限切れです。</div>';
+    document.getElementById('verify-done').style.display = 'block';
+  }
+  /* フォームと上部バナーを非表示 */
+  document.querySelector('.main > .form-card') && (document.querySelector('.main > .form-card').style.display = 'none');
+  document.getElementById('plan-banner-free').style.display = 'none';
+}
+
+async function doRegister() {
+  const name  = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const pw    = document.getElementById('password').value;
+  const pw2   = document.getElementById('password2').value;
+  const errEl = document.getElementById('error-msg');
+  errEl.classList.remove('show');
+
+  if (!name)            { showErr('ニックネームを入力してください'); return; }
+  if (!email)           { showErr('メールアドレスを入力してください'); return; }
+  if (pw.length < 8)    { showErr('パスワードは8文字以上で設定してください'); return; }
+  if (pw !== pw2)       { showErr('パスワードが一致しません'); return; }
+
+  /* 重複メールアドレスチェック */
+  const existingUsers = RK.getAllUsers();
+  if (existingUsers[email]) {
+    showErr('このメールアドレスはすでに登録されています。ログインしてください。');
+    return;
+  }
+
+  /* ボタンを無効化 */
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  /* パスワードをSHA-256でハッシュ化してから保存 */
+  const hashedPw = await RK.hashPassword(pw);
+
+  /* 仮登録: emailVerified = false、プランは常に無料 */
+  const user = {
+    name, email,
+    premium: false,
+    points: 0,
+    emailVerified: false
+  };
+  RK.saveUser(user);
+
+  /* 全ユーザー台帳にはハッシュ済みパスワードを保存 */
+  const allUsers = RK.getAllUsers();
+  allUsers[email] = { ...user, password: hashedPw };
+  RK.saveAllUsers(allUsers);
+
+  /* 認証トークン生成（暗号的乱数） */
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+  localStorage.setItem('rk_verify_' + token, email);
+
+  /* 本登録URL生成 */
+  const verifyURL = `${location.origin}${location.pathname}?verify=${token}&email=${encodeURIComponent(email)}`;
+
+  /* フォームを隠して案内を表示 */
+  document.getElementById('plan-banner-free').style.display = 'none';
+  document.querySelector('.form-card').style.display = 'none';
+  document.getElementById('verify-sent').style.display = 'block';
+  document.getElementById('verify-sent-email').textContent = email;
+
+  /* EmailJSでメール送信を試みる */
+  const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
+  let emailSent = false;
+  if (ejsCfg.serviceId && ejsCfg.verifyTemplateId && ejsCfg.publicKey) {
+    try {
+      emailjs.init(ejsCfg.publicKey);
+      await emailjs.send(ejsCfg.serviceId, ejsCfg.verifyTemplateId, {
+        to_email: email,
+        verify_url: verifyURL,
+        user_name: name
+      });
+      emailSent = true;
+    } catch(e) {
+      console.warn('EmailJS送信エラー:', e);
+    }
+  }
+
+  /* EmailJS未設定またはエラー時はフォールバックとしてURLを表示 */
+  if (!emailSent) {
+    document.getElementById('verify-url-box').textContent = verifyURL;
+    document.getElementById('verify-link').href = verifyURL;
+    document.getElementById('verify-fallback').style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '無料で登録する';
+}
+
+let _resendCooldownTimer = null;
+
+function _startResendCooldown() {
+  const btn = document.querySelector('#resend-section button');
+  let remaining = 60;
+  btn.disabled = true;
+  btn.textContent = `再送まで ${remaining}秒`;
+  _resendCooldownTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(_resendCooldownTimer);
+      btn.disabled = false;
+      btn.textContent = '認証メールを再送する';
+    } else {
+      btn.textContent = `再送まで ${remaining}秒`;
+    }
+  }, 1000);
+}
+
+async function doResendVerify() {
+  const u = RK.getUser();
+  if (!u) return;
+  const email = u.email;
+
+  const btn = document.querySelector('#resend-section button');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  /* 既存トークンを探す、なければ新規発行 */
+  let token = null;
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('rk_verify_') && localStorage.getItem(k) === email) {
+      token = k.replace('rk_verify_', '');
+      break;
+    }
+  }
+  if (!token) {
+    token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map(b => b.toString(16).padStart(2,'0')).join('');
+    localStorage.setItem('rk_verify_' + token, email);
+  }
+
+  const verifyURL = `${location.origin}${location.pathname}?verify=${token}&email=${encodeURIComponent(email)}`;
+  const resultEl  = document.getElementById('resend-result');
+
+  /* EmailJSで送信 */
+  const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
+  let emailSent = false;
+  if (ejsCfg.serviceId && ejsCfg.verifyTemplateId && ejsCfg.publicKey) {
+    try {
+      emailjs.init(ejsCfg.publicKey);
+      await emailjs.send(ejsCfg.serviceId, ejsCfg.verifyTemplateId, {
+        to_email: email,
+        verify_url: verifyURL,
+        user_name: u.name || ''
+      });
+      emailSent = true;
+    } catch(e) {
+      console.warn('EmailJS再送エラー:', e);
+    }
+  }
+
+  if (emailSent) {
+    resultEl.textContent = '✅ 認証メールを再送しました。メールをご確認ください。';
+    resultEl.style.background = '#e8f5e9';
+    resultEl.style.border = '1px solid #a5d6a7';
+    resultEl.style.color = '#2e7d32';
+  } else {
+    /* EmailJS未設定 or 失敗 → フォールバックでURL表示 */
+    resultEl.textContent = 'メール送信に失敗しました。以下のリンクから本登録を完了してください。';
+    resultEl.style.background = '#fff8e1';
+    resultEl.style.border = '1px solid #ffe082';
+    resultEl.style.color = '#795548';
+    document.getElementById('resend-fallback-url').textContent = verifyURL;
+    document.getElementById('resend-fallback-url').style.display = 'block';
+    document.getElementById('resend-fallback-link').href = verifyURL;
+    document.getElementById('resend-fallback-link').style.display = 'inline-block';
+  }
+  resultEl.style.display = 'block';
+
+  /* 送信成功・失敗どちらでも1分間クールダウン */
+  _startResendCooldown();
+}
+
+function showErr(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+</script>
+</body>
+</html>

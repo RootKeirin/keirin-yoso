@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイページ | ROOT競輪</title>
+<style>
+:root{--main-blue:#0047AB;--sub-dark:#001f4d;--accent-yellow:#FFEB3B;--premium-gold:#c8a400;--bg-gray:#f4f7f9;--hot-red:#ff3b3b;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:var(--bg-gray);color:#333;min-height:100vh;padding-bottom:80px;}
+
+/* ── Header ── */
+header{background:var(--main-blue);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+.header-title{font-weight:900;font-size:1rem;}
+.btn-back{color:rgba(255,255,255,.8);text-decoration:none;font-size:.82rem;}
+.btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;font-size:.72rem;padding:5px 10px;border-radius:6px;cursor:pointer;}
+
+/* ── Section tabs ── */
+.page-tabs{display:flex;background:#fff;border-bottom:2px solid #ddd;position:sticky;top:46px;z-index:150;}
+.page-tab{flex:1;text-align:center;padding:11px 6px;font-size:.75rem;font-weight:bold;color:#888;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;}
+.page-tab.active{color:var(--main-blue);border-bottom-color:var(--main-blue);}
+
+.main{padding:16px 14px;}
+
+/* ── プロフィールカード ── */
+.profile-card{background:#fff;border-radius:16px;padding:20px 18px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:14px;}
+.profile-row{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.avatar-wrap{position:relative;flex-shrink:0;}
+.profile-avatar{width:56px;height:56px;border-radius:50%;background:var(--main-blue);color:#fff;font-size:1.4rem;font-weight:bold;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.profile-avatar.premium{background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.avatar-edit-btn{position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;background:var(--main-blue);border:2px solid #fff;border-radius:50%;color:#fff;font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.profile-name{font-weight:bold;font-size:1rem;margin-bottom:4px;}
+.profile-email{font-size:.72rem;color:#999;}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:bold;margin-top:6px;}
+.status-badge.premium{background:linear-gradient(135deg,rgba(200,164,0,.15),rgba(245,216,0,.08));border:1px solid var(--premium-gold);color:var(--premium-gold);}
+.status-badge.free{background:#f0f5ff;border:1px solid #c5d5f5;color:var(--main-blue);}
+.profile-divider{border:none;border-top:1px solid #f0f0f0;margin:12px 0;}
+.profile-info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;}
+.profile-info-label{font-size:.75rem;color:#999;}
+.profile-info-val{font-size:.82rem;font-weight:bold;color:#333;}
+
+/* ── ROOT POINT カード ── */
+.point-card{background:linear-gradient(135deg,var(--main-blue),#1a5fb4);border-radius:16px;padding:20px 18px;box-shadow:0 4px 14px rgba(0,71,171,.3);margin-bottom:14px;color:#fff;}
+.point-label{font-size:.72rem;opacity:.8;margin-bottom:4px;}
+.point-val{font-size:2.2rem;font-weight:900;letter-spacing:.05em;}
+.point-unit{font-size:.85rem;font-weight:bold;opacity:.8;margin-left:4px;}
+.point-note{font-size:.68rem;opacity:.7;margin-top:8px;line-height:1.6;}
+.point-actions{display:flex;gap:8px;margin-top:14px;}
+.btn-pt-buy{flex:1;background:#fff;color:var(--main-blue);font-weight:bold;font-size:.78rem;padding:9px;border-radius:20px;border:none;cursor:pointer;text-align:center;}
+.btn-pt-hist{flex:1;background:rgba(255,255,255,.18);color:#fff;font-weight:bold;font-size:.78rem;padding:9px;border-radius:20px;border:1px solid rgba(255,255,255,.4);cursor:pointer;text-align:center;}
+.pt-history{background:#fff;border-radius:12px;padding:14px;margin-top:10px;display:none;}
+.pt-history.show{display:block;}
+.pt-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:.8rem;}
+.pt-row:last-child{border-bottom:none;}
+.pt-row .pt-minus{color:var(--hot-red);font-weight:bold;}
+.pt-row .pt-plus{color:#2e7d32;font-weight:bold;}
+.pt-row .pt-date{font-size:.68rem;color:#aaa;}
+.premium-upsell{background:linear-gradient(135deg,rgba(200,164,0,.1),rgba(245,216,0,.06));border:1px solid rgba(200,164,0,.3);border-radius:10px;padding:12px;margin-top:10px;text-align:center;}
+.premium-upsell p{font-size:.78rem;color:#c8a400;margin-bottom:8px;line-height:1.5;}
+.btn-premium-link{display:inline-block;background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-weight:bold;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:.8rem;}
+
+/* ── お知らせ ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.section-title-text{font-weight:bold;font-size:.92rem;}
+.unread-badge{background:var(--hot-red);color:#fff;font-size:.6rem;font-weight:bold;padding:2px 6px;border-radius:10px;margin-left:6px;}
+.notice-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:4px solid #e0e0e0;cursor:pointer;transition:box-shadow .15s;}
+.notice-card.unread{border-left-color:var(--main-blue);background:#f5f8ff;}
+.notice-card.individual{border-left-color:var(--premium-gold);}
+.notice-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.12);}
+.notice-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.notice-type-badge{font-size:.6rem;font-weight:bold;padding:2px 7px;border-radius:8px;}
+.notice-type-badge.broadcast{background:#e8f0fe;color:var(--main-blue);}
+.notice-type-badge.individual{background:#fff8e1;color:var(--premium-gold);}
+.notice-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--main-blue);flex-shrink:0;}
+.notice-title{font-weight:bold;font-size:.88rem;flex:1;}
+.notice-date{font-size:.65rem;color:#aaa;white-space:nowrap;}
+.notice-body{font-size:.8rem;color:#555;line-height:1.6;display:none;}
+.notice-body.open{display:block;margin-top:8px;padding-top:8px;border-top:1px solid #eee;}
+.no-notice{text-align:center;padding:28px 20px;color:#bbb;font-size:.85rem;}
+
+/* ── お問い合わせ ── */
+.contact-card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.contact-intro{font-size:.8rem;color:#666;line-height:1.6;margin-bottom:16px;}
+.form-group{margin-bottom:14px;}
+.field-label{display:block;font-size:.78rem;font-weight:bold;color:#555;margin-bottom:5px;}
+select,textarea,input[type="text"]{width:100%;padding:11px 12px;border:1px solid #ddd;border-radius:10px;font-size:.88rem;outline:none;font-family:inherit;transition:border-color .2s;}
+select:focus,textarea:focus,input[type="text"]:focus{border-color:var(--main-blue);box-shadow:0 0 0 3px rgba(0,71,171,.1);}
+textarea{resize:vertical;min-height:100px;}
+.btn-submit{width:100%;background:var(--main-blue);color:#fff;border:none;padding:13px;border-radius:20px;font-size:.9rem;font-weight:bold;cursor:pointer;}
+.btn-submit:disabled{background:#ccc;cursor:not-allowed;}
+.contact-success{background:#e8f5e9;border:1px solid #c8e6c9;border-radius:10px;padding:14px;text-align:center;color:#2e7d32;font-size:.85rem;display:none;}
+.contact-success.show{display:block;}
+.past-contacts{margin-top:16px;}
+.past-title{font-size:.78rem;font-weight:bold;color:#888;margin-bottom:8px;}
+.past-item{background:#f9f9f9;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.78rem;}
+.past-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.past-item-cat{font-weight:bold;color:#555;}
+.past-item-date{color:#bbb;font-size:.68rem;}
+.past-item-msg{color:#777;line-height:1.5;}
+.status-pill{font-size:.6rem;padding:2px 7px;border-radius:8px;font-weight:bold;}
+.status-pill.pending{background:#fff3e0;color:#e65100;}
+.status-pill.replied{background:#e8f5e9;color:#2e7d32;}
+
+/* ── プロモーションコード ── */
+.promo-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);margin-bottom:14px;}
+.promo-card-title{font-size:.75rem;font-weight:bold;color:#555;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.promo-input-row{display:flex;gap:8px;}
+.promo-input-row input[type="text"]{flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:10px;font-size:.88rem;outline:none;font-family:inherit;text-transform:uppercase;letter-spacing:.08em;transition:border-color .2s;}
+.promo-input-row input:focus{border-color:var(--main-blue);box-shadow:0 0 0 3px rgba(0,71,171,.1);}
+.btn-promo-apply{background:var(--main-blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:.82rem;font-weight:bold;cursor:pointer;white-space:nowrap;}
+.btn-promo-apply:hover{background:var(--sub-dark);}
+.promo-msg{margin-top:8px;font-size:.78rem;border-radius:8px;padding:8px 12px;display:none;}
+.promo-msg.ok{display:block;background:#e8f5e9;border:1px solid #c8e6c9;color:#2e7d32;}
+.promo-msg.err{display:block;background:#ffebee;border:1px solid #ffcdd2;color:#c62828;}
+.promo-active{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:.78rem;color:#c8a400;background:rgba(200,164,0,.07);border:1px solid rgba(200,164,0,.2);border-radius:8px;padding:7px 12px;}
+.promo-active-dot{width:8px;height:8px;border-radius:50%;background:var(--premium-gold);flex-shrink:0;}
+
+/* ── タブパネル ── */
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ── Bottom Nav ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.1);}
+.bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;text-decoration:none;color:#999;font-size:.58rem;gap:2px;}
+.bottom-nav a.active{color:var(--main-blue);}
+.bottom-nav-icon{font-size:1.2rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="btn-back">← TOP</a>
+  <span class="header-title">マイページ</span>
+  <button class="btn-logout" onclick="doLogout()">ログアウト</button>
+</header>
+
+<div class="page-tabs">
+  <div class="page-tab active" data-ptab="profile">プロフィール</div>
+  <div class="page-tab" data-ptab="notices">お知らせ <span id="unread-badge" class="unread-badge" style="display:none;"></span></div>
+  <div class="page-tab" data-ptab="contact">お問い合わせ</div>
+</div>
+
+<div class="main">
+
+  <!-- ===== プロフィール ===== -->
+  <div class="tab-panel active" id="ptab-profile">
+
+    <div class="profile-card">
+      <div class="profile-row">
+        <div class="avatar-wrap">
+          <div class="profile-avatar" id="profile-avatar"></div>
+          <button class="avatar-edit-btn" title="画像を変更"
+            onclick="document.getElementById('avatar-file-input').click()">✏</button>
+        </div>
+        <input type="file" id="avatar-file-input" accept="image/*"
+          style="display:none;" onchange="onAvatarFileChange(this)">
+        <div>
+          <div class="profile-name" id="profile-name"></div>
+          <div class="profile-email" id="profile-email"></div>
+          <div id="profile-status"></div>
+        </div>
+      </div>
+      <hr class="profile-divider">
+      <!-- ニックネーム変更 -->
+      <div class="profile-info-row" style="align-items:center;">
+        <span class="profile-info-label">ニックネーム</span>
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span class="profile-info-val" id="profile-name-row"></span>
+          <button id="name-edit-btn" onclick="openNameEdit()"
+            style="background:none;border:1px solid #ccc;border-radius:8px;padding:2px 8px;font-size:.7rem;color:#555;cursor:pointer;">変更</button>
+        </span>
+      </div>
+      <div id="name-edit-area" style="display:none;padding:8px 0 4px;">
+        <input type="text" id="name-input" maxlength="20"
+          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:10px;font-size:.88rem;outline:none;margin-bottom:6px;">
+        <div style="display:flex;gap:8px;">
+          <button onclick="saveName()"
+            style="flex:1;background:var(--main-blue);color:#fff;border:none;padding:8px;border-radius:10px;font-size:.82rem;font-weight:bold;cursor:pointer;">保存する</button>
+          <button onclick="cancelNameEdit()"
+            style="flex:1;background:#f0f0f0;color:#555;border:none;padding:8px;border-radius:10px;font-size:.82rem;cursor:pointer;">キャンセル</button>
+        </div>
+        <div id="name-edit-err" style="font-size:.72rem;color:#e53935;margin-top:5px;display:none;"></div>
+      </div>
+      <div id="name-change-note" style="font-size:.72rem;color:#888;padding-bottom:4px;display:none;"></div>
+      <hr class="profile-divider">
+      <div class="profile-info-row">
+        <span class="profile-info-label">会員プラン</span>
+        <span class="profile-info-val" id="profile-plan"></span>
+      </div>
+      <div class="profile-info-row">
+        <span class="profile-info-label">ROOT POINT 残高</span>
+        <span class="profile-info-val" id="profile-points"></span>
+      </div>
+      <div id="expiring-pt-profile" style="display:none;padding:4px 0 6px;font-size:.72rem;color:#e65100;"></div>
+      <div class="profile-info-row">
+        <span class="profile-info-label">購入済み予想数</span>
+        <span class="profile-info-val" id="profile-preds"></span>
+      </div>
+    </div>
+
+    <!-- ROOT POINT カード -->
+    <div class="point-card">
+      <div class="point-label">ROOT POINT 残高</div>
+      <div>
+        <span class="point-val" id="point-val">0</span>
+        <span class="point-unit">pt</span>
+      </div>
+      <div id="expiring-pt-note" style="display:none;margin:6px 0 2px;padding:6px 10px;background:rgba(230,81,0,.07);border:1px solid rgba(230,81,0,.25);border-radius:8px;font-size:.75rem;color:#e65100;"></div>
+      <div class="point-note">
+        1pt = 1円でポイントを購入できます。<br>
+        PREMIUM会員は毎月1,000ptが自動進呈されます（3ヶ月で失効）。
+      </div>
+      <div class="point-actions">
+        <button class="btn-pt-buy" onclick="showPointBuy()">💳 ポイントを購入</button>
+        <button class="btn-pt-hist" onclick="togglePtHistory()">📋 利用履歴</button>
+      </div>
+      <div class="pt-history" id="pt-history">
+        <div id="pt-history-list"></div>
+      </div>
+    </div>
+
+    <!-- プロモーションコード -->
+    <div class="promo-card">
+      <div class="promo-card-title">🎟️ プロモーションコード</div>
+      <div class="promo-input-row">
+        <input type="text" id="promo-input" placeholder="コードを入力" maxlength="30"
+          onkeydown="if(event.key==='Enter')applyPromo()">
+        <button class="btn-promo-apply" onclick="applyPromo()">適用</button>
+      </div>
+      <div class="promo-msg" id="promo-msg"></div>
+      <div class="promo-active" id="promo-active" style="display:none;">
+        <span class="promo-active-dot"></span>
+        <span id="promo-active-label">PREMIUM有効中</span>
+      </div>
+    </div>
+
+    <div id="premium-upsell-area"></div>
+
+  </div>
+
+  <!-- ===== お知らせ ===== -->
+  <div class="tab-panel" id="ptab-notices">
+    <div class="section-header">
+      <span class="section-title-text">📬 運営からのお知らせ</span>
+    </div>
+    <div id="notices-list"></div>
+  </div>
+
+  <!-- ===== お問い合わせ ===== -->
+  <div class="tab-panel" id="ptab-contact">
+    <div class="contact-card">
+      <p class="contact-intro">
+        ご不明な点やご要望はこちらからお気軽にお問い合わせください。<br>
+        通常2〜3営業日以内にメールにてご返答いたします。
+      </p>
+      <div class="form-group">
+        <label class="field-label">お問い合わせ種別</label>
+        <select id="contact-cat">
+          <option value="">-- 選択してください --</option>
+          <option value="ポイント">ROOT POINTについて</option>
+          <option value="予想コンテンツ">予想コンテンツについて</option>
+          <option value="PREMIUM">PREMIUM会員について</option>
+          <option value="アカウント">アカウント・ログインについて</option>
+          <option value="不具合">不具合・エラー報告</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="field-label">お問い合わせ内容</label>
+        <textarea id="contact-msg" placeholder="お問い合わせ内容を入力してください（100文字以上推奨）"></textarea>
+      </div>
+      <button class="btn-submit" id="contact-submit" onclick="submitContact()">送信する</button>
+      <div class="contact-success" id="contact-success">
+        ✓ お問い合わせを受け付けました。<br>担当者より順次ご連絡いたします。
+      </div>
+    </div>
+
+    <div class="past-contacts" id="past-contacts"></div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html">
+    <span class="bottom-nav-icon">🏠</span>ホーム
+  </a>
+  <a href="index.html?tab=pro-ai">
+    <span class="bottom-nav-icon">🤖</span>AI予想
+  </a>
+  <a href="premium.html" id="nav-premium-link">
+    <span class="bottom-nav-icon">👑</span>PREMIUM
+  </a>
+  <a href="mypage.html" class="active">
+    <span class="bottom-nav-icon">👤</span>マイページ
+  </a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* ── 認証チェック（プレミアム期限も同時確認） ── */
+RK.checkPremiumExpiry();        /* 期限切れなら premium=false に更新 */
+const currentUser = RK.getUser();
+if (!currentUser) location.href = 'login.html?redirect=mypage.html';
+
+/* ── タブ切替 ── */
+document.querySelectorAll('.page-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ptab-' + tab.dataset.ptab).classList.add('active');
+    if (tab.dataset.ptab === 'notices') renderNotices();
+    if (tab.dataset.ptab === 'contact') renderPastContacts();
+  });
+});
+
+/* ── プロフィール画像 ── */
+function renderProfileAvatar() {
+  const u       = currentUser;
+  const el      = document.getElementById('profile-avatar');
+  const saved   = localStorage.getItem('rk_avatar_' + u.email);
+  el.className  = 'profile-avatar' + (RK.isPremium() ? ' premium' : '');
+  if (saved) {
+    el.innerHTML = `<img src="${saved}" alt="avatar">`;
+  } else {
+    el.textContent = (u.name || '?')[0].toUpperCase();
+  }
+}
+
+function onAvatarFileChange(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width  = 128;
+      canvas.height = 128;
+      const ctx  = canvas.getContext('2d');
+      const size = Math.min(img.width, img.height);
+      const sx   = (img.width  - size) / 2;
+      const sy   = (img.height - size) / 2;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 128, 128);
+      const base64 = canvas.toDataURL('image/jpeg', 0.85);
+      localStorage.setItem('rk_avatar_' + currentUser.email, base64);
+      renderProfileAvatar();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+/* ── ニックネーム変更 ── */
+function openNameEdit() {
+  const editBtn = document.getElementById('name-edit-btn');
+  if (editBtn.disabled) return;
+  document.getElementById('name-input').value = currentUser.name || '';
+  document.getElementById('name-edit-area').style.display = 'block';
+  document.getElementById('name-edit-err').style.display = 'none';
+  document.getElementById('name-input').focus();
+}
+function cancelNameEdit() {
+  document.getElementById('name-edit-area').style.display = 'none';
+}
+function saveName() {
+  const newName = document.getElementById('name-input').value.trim();
+  const errEl   = document.getElementById('name-edit-err');
+  errEl.style.display = 'none';
+  if (!newName) { errEl.textContent = 'ニックネームを入力してください'; errEl.style.display = 'block'; return; }
+  if (newName.length > 20) { errEl.textContent = '20文字以内で入力してください'; errEl.style.display = 'block'; return; }
+
+  /* 14日クールダウンチェック */
+  const cooldownMs = 14 * 24 * 60 * 60 * 1000;
+  if (currentUser.nameChangedAt && (Date.now() - new Date(currentUser.nameChangedAt).getTime()) < cooldownMs) {
+    errEl.textContent = 'ニックネームの変更は14日に1回までです';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  currentUser.name = newName;
+  currentUser.nameChangedAt = new Date().toISOString();
+  RK.saveUser(currentUser);
+
+  /* rk_all_users にも反映 */
+  const allUsers = RK.getAllUsers();
+  if (allUsers[currentUser.email]) {
+    allUsers[currentUser.email].name = newName;
+    allUsers[currentUser.email].nameChangedAt = currentUser.nameChangedAt;
+    RK.saveAllUsers(allUsers);
+  }
+
+  document.getElementById('name-edit-area').style.display = 'none';
+  renderProfile();
+  showToast('ニックネームを変更しました');
+}
+
+/* ── プロフィール描画 ── */
+function renderProfile() {
+  const u = currentUser;
+  const isPremium = u.premium;
+  const totalPts  = RK.getPoints(); /* 通常pt + 有効グラント合計 */
+  const purchased = RK.getPurchasedSet();
+
+  renderProfileAvatar();
+
+  document.getElementById('profile-name').textContent = u.name;
+  document.getElementById('profile-name-row').textContent = u.name;
+  document.getElementById('profile-email').textContent = u.email || '';
+
+  /* ニックネーム変更ボタンの状態 */
+  const lastChanged = u.nameChangedAt ? new Date(u.nameChangedAt) : null;
+  const now = Date.now();
+  const cooldownMs = 14 * 24 * 60 * 60 * 1000; /* 14日 */
+  const noteEl = document.getElementById('name-change-note');
+  const editBtn = document.getElementById('name-edit-btn');
+  if (lastChanged && (now - lastChanged.getTime()) < cooldownMs) {
+    const nextDate = new Date(lastChanged.getTime() + cooldownMs);
+    const nd = `${nextDate.getFullYear()}/${nextDate.getMonth()+1}/${nextDate.getDate()}`;
+    editBtn.disabled = true;
+    editBtn.style.color = '#bbb';
+    editBtn.style.borderColor = '#e0e0e0';
+    editBtn.style.cursor = 'default';
+    noteEl.textContent = `次回変更可能日: ${nd}`;
+    noteEl.style.display = 'block';
+  } else {
+    editBtn.disabled = false;
+    editBtn.style.color = '#555';
+    editBtn.style.borderColor = '#ccc';
+    editBtn.style.cursor = 'pointer';
+    noteEl.style.display = 'none';
+  }
+  document.getElementById('profile-plan').textContent = isPremium ? '👑 PREMIUM会員' : '無料会員';
+  document.getElementById('profile-points').textContent = totalPts.toLocaleString() + ' pt';
+  document.getElementById('profile-preds').textContent = purchased.size + ' 件';
+  document.getElementById('profile-status').innerHTML = isPremium
+    ? `<span class="status-badge premium">👑 PREMIUM</span>`
+    : `<span class="status-badge free">FREE</span>`;
+
+  document.getElementById('point-val').textContent = totalPts.toLocaleString();
+
+  /* 失効予定pt表示 */
+  const expPt    = RK.getExpiringPt(90); /* 90日以内 = 全グラント対象 */
+  const earliest = RK.getEarliestGrantExpiry();
+  const expDateStr = earliest
+    ? `${earliest.getFullYear()}/${earliest.getMonth()+1}/${earliest.getDate()}`
+    : '';
+  const expHtml = expPt > 0
+    ? `⚠️ 失効予定: <strong>${expPt.toLocaleString()} pt</strong>`
+      + (expDateStr ? `（最短 ${expDateStr} 失効）` : '')
+    : '';
+
+  const expiringEl = document.getElementById('expiring-pt-note');
+  if (expiringEl) {
+    expiringEl.innerHTML  = expHtml;
+    expiringEl.style.display = expPt > 0 ? 'block' : 'none';
+  }
+  const expiringProfEl = document.getElementById('expiring-pt-profile');
+  if (expiringProfEl) {
+    expiringProfEl.textContent = expPt > 0 ? `⚠️ うち失効予定: ${expPt.toLocaleString()} pt` : '';
+    expiringProfEl.style.display = expPt > 0 ? 'block' : 'none';
+  }
+
+  /* ポイント購入履歴（購入済み予想を履歴として表示） */
+  const data = RK.getData();
+  const histItems = [];
+  Object.values(data.races).forEach(race => {
+    (race.userPredictions || []).forEach(pred => {
+      if (purchased.has(pred.id)) {
+        histItems.push({
+          label: `${pred.userName}の予想を購入`,
+          amount: -pred.pointPrice,
+          date: '購入済み'
+        });
+      }
+    });
+  });
+  /* グラント履歴を付与日付・種別付きで追加 */
+  const _TYPE_LABEL = {
+    premium_monthly: 'PREMIUM月間進呈',
+    promo:           'プロモコード',
+    notice:          'お知らせ配布',
+    challenge7:      '実力7チャレンジ賞金'
+  };
+  const _grants = u.ptGrants || u.premiumGrants || []; /* 旧データ互換 */
+  _grants.forEach(g => {
+    const gDate  = new Date(g.grantedAt);
+    const expDate = new Date(g.expiresAt);
+    const label  = _TYPE_LABEL[g.type] || '進呈ポイント';
+    const suffix = g.type === 'premium_monthly'
+      ? `（${gDate.getFullYear()}/${gDate.getMonth()+1}月分）`
+      : `（${gDate.getFullYear()}/${gDate.getMonth()+1}/${gDate.getDate()}）`;
+    const expStr = `${expDate.getFullYear()}/${expDate.getMonth()+1}/${expDate.getDate()} 失効`;
+    histItems.unshift({ label: label + suffix, sub: expStr, amount: g.amount });
+  });
+
+  const listEl = document.getElementById('pt-history-list');
+  if (histItems.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center;color:#aaa;font-size:.8rem;padding:10px;">利用履歴はありません</div>';
+  } else {
+    listEl.innerHTML = histItems.map(h => `
+      <div class="pt-row">
+        <div>
+          <div style="font-size:.78rem;color:#333;">${h.label}</div>
+          ${h.sub ? `<div class="pt-date" style="color:#e65100;">${h.sub}</div>` : (h.date ? `<div class="pt-date">${h.date}</div>` : '')}
+        </div>
+        <div class="${h.amount < 0 ? 'pt-minus' : 'pt-plus'}">
+          ${h.amount > 0 ? '+' : ''}${h.amount.toLocaleString()} pt
+        </div>
+      </div>`).join('');
+  }
+
+  /* PREMIUMエリア */
+  document.getElementById('premium-upsell-area').innerHTML = isPremium
+    ? `<div class="premium-upsell">
+        <p>👑 <strong>PREMIUM会員</strong>としてご利用中です。<br>毎月1,000ptが自動進呈されます。</p>
+        <a href="premium-member.html" class="btn-premium-link">PREMIUM会員ページへ →</a>
+      </div>`
+    : `<div class="premium-upsell">
+        <p>👑 <strong>PREMIUM会員</strong>は毎月1,000ptが進呈！<br>
+        ポイントはPRO USER予想の購入に利用できます。</p>
+        <a href="premium.html" class="btn-premium-link">PREMIUMに登録する</a>
+      </div>`;
+
+  /* ボトムナビのPREMIUMリンクをロール別に切替 */
+  const premNavLink = document.getElementById('nav-premium-link');
+  if (premNavLink) premNavLink.href = isPremium ? 'premium-member.html' : 'premium.html';
+}
+
+function togglePtHistory() {
+  document.getElementById('pt-history').classList.toggle('show');
+}
+
+/* ── プロモーションコード ── */
+function renderPromoStatus() {
+  const label = RK.getPremiumExpiresLabel();
+  const el    = document.getElementById('promo-active');
+  if (label) {
+    document.getElementById('promo-active-label').textContent = `👑 PREMIUM有効中 — ${label}`;
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function applyPromo() {
+  const input  = document.getElementById('promo-input');
+  const code   = input.value.trim();
+  showPromoMsg('', ''); /* いったんリセット */
+
+  if (!code) { showPromoMsg('err', 'コードを入力してください'); return; }
+
+  const result = RK.applyPromoCode(code);
+  if (result.ok) {
+    input.value = '';
+    showPromoMsg('ok', `✓ 「${result.label}」が適用されました！`);
+    renderPromoStatus();
+    /* プロフィールのPREMIUMステータスも即時更新 */
+    renderProfile();
+  } else {
+    showPromoMsg('err', result.msg);
+  }
+}
+
+function showPromoMsg(type, text) {
+  const el = document.getElementById('promo-msg');
+  el.textContent = text;
+  el.style.display = '';       /* インラインスタイルをリセットしCSSクラスに委ねる */
+  el.className = 'promo-msg' + (type ? ' ' + type : '');
+}
+
+function showPointBuy() {
+  alert('ポイント購入機能は現在準備中です。\nPREMIUM会員登録で毎月1,000ptが進呈されます。');
+}
+
+/* ── お知らせ描画 ── */
+function renderNotices() {
+  const email = currentUser.email || '';
+  const notices = RK.getNoticesForUser(email);
+  const el = document.getElementById('notices-list');
+
+  if (notices.length === 0) {
+    el.innerHTML = '<div class="no-notice">📭 お知らせはありません</div>';
+    return;
+  }
+
+  el.innerHTML = notices.map(n => {
+    const isUnread = !RK.isNoticeRead(n.id);
+    const isIndividual = n.type === 'individual';
+    return `
+      <div class="notice-card ${isUnread ? 'unread' : ''} ${isIndividual ? 'individual' : ''}"
+           id="nc-${n.id}" onclick="toggleNotice('${n.id}','${email}')">
+        <div class="notice-top">
+          ${isUnread ? '<span class="notice-unread-dot"></span>' : ''}
+          <span class="notice-type-badge ${isIndividual ? 'individual' : 'broadcast'}">
+            ${isIndividual ? '個別' : '全体'}
+          </span>
+          ${n.giftPt > 0 ? `<span data-pt-badge style="background:#fff8e1;color:#b8860b;font-size:.6rem;font-weight:bold;padding:2px 7px;border-radius:8px;flex-shrink:0;">💎 ${n.giftPt.toLocaleString()}pt${isUnread ? '' : ' 受取済'}</span>` : ''}
+          <span class="notice-title">${escHtml(n.title)}</span>
+          <span class="notice-date">${n.date}</span>
+        </div>
+        <div class="notice-body" id="nb-${n.id}">${escHtml(n.body)}</div>
+      </div>`;
+  }).join('');
+
+  updateUnreadBadge(email);
+}
+
+function toggleNotice(id, email) {
+  const bodyEl = document.getElementById('nb-' + id);
+  const cardEl = document.getElementById('nc-' + id);
+  bodyEl.classList.toggle('open');
+  /* 既読処理 */
+  if (cardEl.classList.contains('unread')) {
+    const awardedPt = RK.markNoticeRead(id);
+    cardEl.classList.remove('unread');
+    const dot = cardEl.querySelector('.notice-unread-dot');
+    if (dot) dot.remove();
+    /* pt付与バッジを「受取済」に更新 */
+    const ptBadge = cardEl.querySelector('[data-pt-badge]');
+    if (ptBadge) ptBadge.textContent = `💎 ${awardedPt.toLocaleString()}pt 受取済`;
+    updateUnreadBadge(email);
+    /* pt付与トースト */
+    if (awardedPt > 0) {
+      showToast(`💎 ${awardedPt.toLocaleString()}pt を受け取りました！`, 'success');
+      /* ポイント表示を再描画 */
+      const ptEl = document.getElementById('user-points');
+      if (ptEl) ptEl.textContent = RK.getPoints().toLocaleString();
+    }
+  }
+}
+
+function updateUnreadBadge(email) {
+  const count = RK.getUnreadCount(email);
+  const badge = document.getElementById('unread-badge');
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+/* ── お問い合わせ ── */
+function submitContact() {
+  const cat = document.getElementById('contact-cat').value;
+  const msg = document.getElementById('contact-msg').value.trim();
+  if (!cat) { alert('お問い合わせ種別を選択してください'); return; }
+  if (msg.length < 10) { alert('お問い合わせ内容を10文字以上入力してください'); return; }
+
+  RK.addContact({
+    email: currentUser.email || '',
+    name:  currentUser.name  || '',
+    category: cat,
+    message:  msg
+  });
+
+  document.getElementById('contact-cat').value = '';
+  document.getElementById('contact-msg').value = '';
+  document.getElementById('contact-submit').disabled = true;
+  document.getElementById('contact-success').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('contact-success').classList.remove('show');
+    document.getElementById('contact-submit').disabled = false;
+    renderPastContacts();
+  }, 3000);
+}
+
+function renderPastContacts() {
+  const contacts = RK.getContacts().filter(c => c.email === (currentUser.email || ''));
+  const el = document.getElementById('past-contacts');
+  if (contacts.length === 0) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `
+    <div class="past-title">過去のお問い合わせ</div>
+    ${contacts.map(c => `
+      <div class="past-item">
+        <div class="past-item-header">
+          <span class="past-item-cat">${escHtml(c.category)}</span>
+          <span>
+            <span class="status-pill ${c.status}">${c.status === 'replied' ? '返信済み' : '受付中'}</span>
+            <span class="past-item-date" style="margin-left:6px;">${c.date}</span>
+          </span>
+        </div>
+        <div class="past-item-msg">${escHtml(c.message)}</div>
+      </div>`).join('')}`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── ログアウト ── */
+function doLogout() {
+  if (!confirm('ログアウトしますか？')) return;
+  RK.logout();
+  location.href = 'index.html';
+}
+
+/* ── 未読バッジをタブに反映 ── */
+function initUnreadBadge() {
+  const email = currentUser ? (currentUser.email || '') : '';
+  updateUnreadBadge(email);
+}
+
+/* ── 初期化 ── */
+/* PREMIUM月次pt付与チェック（新しい月ならここで付与） */
+(async () => {
+  await RK.init();
+  const _grantedPt = RK.checkPremiumMonthlyGrant();
+  if (_grantedPt > 0) {
+    showToast(`👑 PREMIUM月間ポイント +${_grantedPt.toLocaleString()}pt を進呈しました！（3ヶ月で失効）`, 'success');
+  }
+  renderProfile();
+  renderPromoStatus();
+  initUnreadBadge();
+})();
+
+function showToast(msg, type) {
+  let el = document.getElementById('mp-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'mp-toast';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:10px;font-size:.88rem;font-weight:bold;z-index:9999;display:none;box-shadow:0 4px 16px rgba(0,0,0,.25);white-space:nowrap;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = type === 'success' ? '#3fb950' : '#f85149';
+  el.style.color = '#fff';
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+</script>
+</body>
+</html>

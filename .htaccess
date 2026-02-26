@@ -1,0 +1,10 @@
+Options -Indexes
+RewriteEngine On
+
+# HTTP → HTTPS リダイレクト
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# www なし → www あり リダイレクト
+RewriteCond %{HTTP_HOST} ^rootkeirin\.com$ [NC]
+RewriteRule ^(.*)$ https://www.rootkeirin.com/$1 [R=301,L]

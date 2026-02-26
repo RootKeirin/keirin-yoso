@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>レース詳細 | ROOT競輪</title>
+<style>
+:root{
+  --main-blue:#0047AB;--sub-dark:#001f4d;--accent-yellow:#FFEB3B;
+  --register-orange:#FF9800;--hot-red:#ff3b3b;--text-dark:#333;--bg-gray:#f4f7f9;
+  --premium-gold:#c8a400;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:var(--bg-gray);color:var(--text-dark);line-height:1.4;padding-bottom:70px;}
+
+/* ── Header ── */
+header{background:var(--main-blue);color:#fff;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+.header-left{display:flex;align-items:center;gap:8px;}
+.refresh-btn{background:rgba(255,255,255,.18);border:none;color:#fff;width:30px;height:30px;border-radius:4px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.site-title{font-weight:900;font-size:1rem;color:#fff;text-decoration:none;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;}
+.header-right{display:flex;align-items:center;gap:6px;}
+.btn-login{text-decoration:none;font-size:.55rem;font-weight:bold;padding:3px 7px;border-radius:3px;text-align:center;white-space:nowrap;}
+.login-premium{color:var(--accent-yellow);border:1px solid var(--accent-yellow);background:rgba(255,235,59,.1);}
+.login-normal{color:#fff;border:1px solid rgba(255,255,255,.5);}
+.login-group{display:flex;flex-direction:column;gap:3px;}
+.btn-register{background:var(--register-orange);color:#fff;text-decoration:none;font-size:.65rem;font-weight:bold;padding:8px 6px;border-radius:6px;line-height:1.1;text-align:center;}
+.time-label-group{background:rgba(255,255,255,.1);padding:2px 6px;border-radius:4px;display:flex;flex-direction:column;}
+.time-label{font-size:.5rem;opacity:.8;}
+.current-time{font-size:.85rem;font-weight:bold;}
+.user-name-badge{color:#fff;font-size:.65rem;font-weight:bold;}
+.badge-premium-sm{color:var(--accent-yellow);font-size:.55rem;font-weight:bold;border:1px solid var(--accent-yellow);padding:1px 5px;border-radius:3px;}
+
+/* ── Race Hero ── */
+.race-hero{background:linear-gradient(135deg,var(--main-blue),var(--sub-dark));color:#fff;padding:18px 16px 20px;position:relative;}
+.race-grade-badge{display:inline-block;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:10px;font-size:.72rem;font-weight:bold;margin-bottom:8px;}
+.race-hero h1{font-size:1.7rem;font-weight:900;margin-bottom:4px;}
+.race-hero-sub{font-size:.88rem;opacity:.85;margin-bottom:12px;}
+.deadline-row{display:flex;align-items:center;gap:10px;}
+.deadline-badge{background:var(--accent-yellow);color:var(--main-blue);font-weight:900;padding:6px 14px;border-radius:20px;font-size:.9rem;}
+.distance-badge{background:rgba(255,255,255,.15);color:#fff;padding:6px 12px;border-radius:20px;font-size:.78rem;}
+
+/* ── Tab Bar ── */
+.race-tab-bar{background:#fff;border-bottom:2px solid #e0e0e0;display:flex;position:sticky;top:46px;z-index:150;overflow-x:auto;}
+.race-tab-bar button{flex:1;border:none;background:none;padding:11px 4px;font-size:.75rem;font-weight:bold;color:#888;cursor:pointer;position:relative;white-space:nowrap;min-width:72px;}
+.race-tab-bar button.active{color:var(--main-blue);}
+.race-tab-bar button.active::after{content:"";position:absolute;bottom:0;left:10%;right:10%;height:3px;background:var(--main-blue);border-radius:2px 2px 0 0;}
+.tab-panel{display:none;padding:14px;}
+.tab-panel.active{display:block;}
+
+/* ────────────────────────────────────────
+   ライン予想
+──────────────────────────────────────── */
+.line-pred-wrap{background:#fff;border-radius:12px;padding:14px 12px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.09);}
+.line-pred-title{font-size:.85rem;font-weight:bold;color:var(--main-blue);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.line-pred-title::before{content:"";display:inline-block;width:4px;height:16px;background:var(--main-blue);border-radius:2px;}
+.lines-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;}
+.line-group{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.line-riders-row{display:flex;align-items:center;gap:4px;}
+.line-bike{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:.95rem;border:2px solid;flex-shrink:0;}
+.line-arrow{color:#bbb;font-size:.9rem;margin:0 1px;}
+.line-name-row{font-size:.65rem;color:#888;text-align:center;line-height:1.3;}
+.line-divider{width:1px;background:#e0e0e0;align-self:stretch;margin:0 2px;}
+.line-comment{font-size:.78rem;color:#555;line-height:1.6;background:#f8faff;border-radius:8px;padding:8px 10px;border-left:3px solid var(--main-blue);}
+
+/* ────────────────────────────────────────
+   出走表（8カラム）
+──────────────────────────────────────── */
+.entry-table-wrap{overflow-x:auto;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.09);}
+.riders-table{width:100%;border-collapse:collapse;background:#fff;font-size:.75rem;min-width:560px;}
+.riders-table th{background:var(--main-blue);color:#fff;padding:8px 5px;font-size:.65rem;font-weight:bold;text-align:center;white-space:nowrap;}
+.riders-table td{padding:9px 4px;text-align:center;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+.riders-table tr:last-child td{border-bottom:none;}
+.riders-table tr:nth-child(even) td{background:#f8faff;}
+
+/* 予想印 */
+.mark-cell{font-size:1.1rem;font-weight:900;min-width:24px;}
+
+/* 車番バッジ */
+.bike-num{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;border:2px solid;}
+
+/* 選手名セル */
+.name-cell{text-align:left;padding-left:6px;}
+.name-main{font-weight:bold;font-size:.82rem;display:block;}
+.name-sub{font-size:.62rem;color:#aaa;}
+
+/* 級班 */
+.rank-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:bold;}
+.rank-S1,.rank-S2{background:#e3f2fd;color:var(--main-blue);}
+.rank-A1,.rank-A2,.rank-A3{background:#f1f8e9;color:#2e7d32;}
+
+/* 競走得点 */
+.score-cell{font-weight:bold;font-size:.82rem;color:#333;}
+
+/* 戦法バッジ */
+.style-badge{display:inline-block;padding:2px 6px;border-radius:10px;font-size:.65rem;font-weight:bold;}
+.style-逃げ{background:#fff3e0;color:#e65100;}
+.style-先行{background:#e3f2fd;color:#1565c0;}
+.style-追込{background:#f3e5f5;color:#6a1b9a;}
+.style-捲り{background:#e8f5e9;color:#2e7d32;}
+
+/* 近走成績 */
+.results-cell{font-size:.7rem;color:#666;letter-spacing:.05em;}
+
+/* ROOT独自点数 */
+.root-score-cell{font-weight:900;font-size:.85rem;}
+.root-score-high{color:#e53935;}
+.root-score-mid{color:#f57c00;}
+.root-score-low{color:#aaa;}
+
+/* ── 展開予想 ── */
+.pred-section h2{font-size:1rem;font-weight:bold;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.tactics-board{background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.09);margin-bottom:16px;}
+.tactics-row{margin-bottom:10px;}
+.tactics-label{font-size:.68rem;font-weight:bold;color:#888;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.tactics-label .dot{width:8px;height:8px;border-radius:50%;}
+.tactics-riders{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.tactics-arrow{color:#bbb;font-size:.9rem;}
+.tactics-bike{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;border:2px solid;flex-shrink:0;}
+
+/* ── 展開グリッドボード ── */
+.tb-wrap{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.09);margin-bottom:16px;}
+.tb-head{background:linear-gradient(90deg,var(--main-blue),var(--sub-dark));color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
+.tb-title{font-size:.85rem;font-weight:bold;}.tb-note{font-size:.65rem;opacity:.75;}
+.tb-scroll{overflow-x:auto;padding:12px 12px 0;}
+.tb-lane-lbl{display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#aaa;font-weight:bold;height:52px;}
+.tb-cell{height:52px;border-radius:8px;background:#f4f7fb;border:1.5px dashed #d5dff5;display:flex;align-items:center;justify-content:flex-end;padding:0 6px;}
+.tb-cell.gc{border-left:3px solid var(--hot-red);border-top-left-radius:0;border-bottom-left-radius:0;}
+.tb-cell.hr{background:#fff;border:1.5px solid #c8d8ff;}
+.tb-rdr{display:flex;align-items:center;gap:3px;}
+.tb-arr{font-weight:900;font-size:1rem;letter-spacing:-1px;line-height:1;text-shadow:0 0 3px currentColor;}
+.tb-arr.spd-1{color:#22c55e;}
+.tb-arr.spd-2{color:#facc15;}
+.tb-arr.spd-3{color:var(--hot-red);}
+.tb-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;border:2px solid;flex-shrink:0;}
+.tb-legend{display:flex;gap:10px;padding:6px 12px 12px;font-size:.65rem;color:#999;flex-wrap:wrap;align-items:center;}
+.tb-comment{border-top:1px solid #f0f0f0;padding:12px 14px;font-size:.82rem;color:#444;line-height:1.7;}
+
+.free-pred-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.09);margin-bottom:16px;}
+.free-pred-card h3{font-size:.9rem;font-weight:bold;margin-bottom:10px;color:var(--main-blue);}
+.free-pred-text{font-size:.84rem;line-height:1.7;color:#444;}
+
+/* ── PRO AI ── */
+.ai-pro-card{border-radius:12px;padding:18px;margin-bottom:16px;background:linear-gradient(135deg,#001f4d,#0047AB);color:#fff;box-shadow:0 4px 14px rgba(0,71,171,.35);}
+.ai-pro-card h3{font-size:1rem;font-weight:900;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.confidence-bar-wrap{margin:10px 0;}
+.confidence-label{font-size:.68rem;opacity:.8;margin-bottom:4px;}
+.confidence-bar{background:rgba(255,255,255,.2);border-radius:10px;height:8px;}
+.confidence-fill{background:var(--accent-yellow);border-radius:10px;height:8px;transition:width .6s;}
+.ai-picks-big{margin:12px 0;text-align:center;}
+.ai-picks-big .label{font-size:.68rem;opacity:.8;}
+.ai-picks-big .val{font-size:2rem;font-weight:900;color:var(--accent-yellow);letter-spacing:.1em;}
+.ai-detail{background:rgba(255,255,255,.1);border-radius:8px;padding:12px;font-size:.8rem;line-height:1.7;white-space:pre-line;}
+
+/* ── PREMIUM LOCK ── */
+.premium-lock-overlay{border-radius:12px;overflow:hidden;position:relative;margin-bottom:16px;}
+.lock-blur{filter:blur(5px);pointer-events:none;user-select:none;}
+.lock-mask{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;}
+.lock-mask-icon{font-size:3rem;margin-bottom:8px;}
+.lock-mask h4{color:var(--accent-yellow);font-size:1rem;font-weight:900;margin-bottom:6px;}
+.lock-mask p{color:#fff;font-size:.78rem;margin-bottom:14px;line-height:1.6;}
+.btn-premium{display:inline-block;background:linear-gradient(135deg,#c8a400,#e8c200);color:#fff;font-weight:bold;padding:10px 24px;border-radius:20px;text-decoration:none;font-size:.85rem;}
+
+/* ── PRO USER予想 ── */
+.pro-user-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.pro-user-top h2{font-size:1rem;font-weight:bold;}
+.my-point-badge{background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:4px 10px;font-size:.72rem;font-weight:bold;color:#c8a400;display:flex;align-items:center;gap:4px;}
+.pro-user-what{background:#f0f5ff;border:1px solid #d0dff5;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:.78rem;color:#555;line-height:1.6;}
+.pro-user-what strong{color:var(--main-blue);}
+/* カード共通 */
+.pu-card{background:#fff;border-radius:12px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.09);border:1px solid #eee;overflow:hidden;}
+.pu-card-head{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;}
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;flex-shrink:0;}
+.pu-user-info{flex:1;min-width:0;}
+.pu-user-name{font-weight:bold;font-size:.88rem;}
+.pu-user-sub{font-size:.65rem;color:#999;margin-top:2px;}
+.pu-grade{display:inline-block;background:linear-gradient(135deg,var(--main-blue),#1a5fb4);color:#fff;font-size:.6rem;font-weight:bold;padding:2px 7px;border-radius:8px;margin-left:4px;}
+.pu-grade.a{background:linear-gradient(135deg,#2e7d32,#388e3c);}
+.pu-price-tag{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;}
+.pu-pt{font-size:1rem;font-weight:900;color:var(--premium-gold);}
+.pu-pt-label{font-size:.6rem;color:#aaa;}
+/* ロック状態 */
+.pu-body-locked{padding:0 14px 14px;}
+.pu-teaser{font-size:.82rem;color:#777;line-height:1.6;margin-bottom:10px;position:relative;}
+.pu-teaser::after{content:"";position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(transparent,#fff);}
+.pu-picks-locked{background:#f8f8f8;border-radius:8px;padding:10px;text-align:center;margin-bottom:12px;}
+.pu-picks-locked-label{font-size:.65rem;color:#aaa;margin-bottom:4px;}
+.pu-picks-blur{font-size:1.3rem;font-weight:900;color:#ccc;filter:blur(4px);user-select:none;letter-spacing:.1em;}
+.pu-buy-area{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-buy{flex:1;background:linear-gradient(135deg,var(--premium-gold),#f5d800);color:#000;font-weight:900;font-size:.82rem;padding:10px 8px;border-radius:20px;border:none;cursor:pointer;text-align:center;min-width:120px;}
+.btn-buy:hover{filter:brightness(1.05);}
+.btn-buy-premium{flex:1;background:var(--main-blue);color:#fff;font-weight:bold;font-size:.78rem;padding:10px 8px;border-radius:20px;border:none;cursor:pointer;text-align:center;text-decoration:none;min-width:100px;}
+.btn-login-req{flex:1;background:#f0f0f0;color:#666;font-size:.78rem;padding:10px;border-radius:20px;border:none;cursor:pointer;text-align:center;}
+/* 購入済み状態 */
+.pu-purchased-badge{background:#e8f5e9;color:#2e7d32;font-size:.65rem;font-weight:bold;padding:2px 8px;border-radius:8px;border:1px solid #c8e6c9;}
+.pu-body-open{padding:0 14px 14px;}
+.pu-full-text{font-size:.83rem;color:#333;line-height:1.7;margin-bottom:12px;}
+.pu-picks-open{background:linear-gradient(135deg,#fff8e1,#fffde7);border:1px solid #ffe082;border-radius:10px;padding:12px;text-align:center;margin-bottom:10px;}
+.pu-picks-open-label{font-size:.65rem;color:#aaa;margin-bottom:4px;}
+.pu-picks-val{font-size:1.4rem;font-weight:900;color:#c8a400;letter-spacing:.1em;}
+.pu-like-row{display:flex;gap:8px;padding-top:10px;border-top:1px solid #f5f5f5;}
+.like-btn{background:none;border:1px solid #ddd;border-radius:16px;padding:5px 12px;font-size:.75rem;cursor:pointer;color:#666;transition:all .15s;}
+.like-btn:hover,.like-btn.liked{background:#fff0f0;border-color:#ff7675;color:#c0392b;}
+/* PRO USERソートバー */
+.pu-sort-bar{display:flex;gap:6px;margin-bottom:12px;}
+.pu-sort-btn{flex:1;padding:7px 4px;border-radius:20px;border:1px solid #ddd;background:#f8f9fa;color:#555;font-size:.75rem;font-weight:bold;cursor:pointer;transition:all .2s;}
+.pu-sort-btn.active{background:var(--main-blue);color:#fff;border-color:var(--main-blue);}
+/* PREMIUM無料バナー */
+.premium-free-banner{background:linear-gradient(135deg,rgba(200,164,0,.1),rgba(245,216,0,.06));border:1px solid rgba(200,164,0,.3);border-radius:10px;padding:12px;text-align:center;margin-bottom:16px;}
+.premium-free-banner p{font-size:.78rem;color:#c8a400;margin-bottom:8px;line-height:1.5;}
+.no-pred{text-align:center;padding:40px 20px;color:#bbb;}
+.no-pred-icon{font-size:3rem;margin-bottom:10px;}
+
+/* ── 掲示板 ── */
+.bbs-rules{background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.75rem;color:#666;line-height:1.8;}
+.bbs-rules strong{color:#f57c00;}
+.bbs-post-form{background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.09);margin-bottom:14px;}
+.bbs-post-form textarea{width:100%;border:1px solid #ddd;border-radius:8px;padding:10px;font-size:.85rem;resize:vertical;min-height:72px;font-family:inherit;outline:none;transition:border-color .2s;}
+.bbs-post-form textarea:focus{border-color:var(--main-blue);box-shadow:0 0 0 3px rgba(0,71,171,.1);}
+.bbs-post-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.bbs-post-footer small{font-size:.68rem;color:#aaa;}
+.btn-bbs-post{background:var(--main-blue);color:#fff;border:none;padding:8px 22px;border-radius:20px;font-size:.82rem;font-weight:bold;cursor:pointer;}
+.btn-bbs-post:disabled{background:#ccc;cursor:not-allowed;}
+.bbs-login-notice{background:#fff;border-radius:12px;padding:22px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.09);margin-bottom:14px;}
+.bbs-msg-list{display:flex;flex-direction:column;gap:10px;}
+.bbs-msg{background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.bbs-msg-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.bbs-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:.85rem;flex-shrink:0;color:#fff;}
+.bbs-name{font-weight:bold;font-size:.82rem;}
+.bbs-premium-badge{background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-size:.58rem;font-weight:bold;padding:2px 6px;border-radius:8px;margin-left:4px;white-space:nowrap;}
+.bbs-time{font-size:.65rem;color:#aaa;margin-left:auto;}
+.bbs-msg-text{font-size:.83rem;color:#333;line-height:1.7;word-break:break-word;}
+.bbs-empty{text-align:center;padding:30px;color:#bbb;font-size:.85rem;}
+.bbs-alert{font-size:.78rem;margin-top:6px;display:none;padding:6px 10px;border-radius:8px;}
+.bbs-alert.show{display:block;}
+.bbs-alert.error{color:#e53935;background:#fff3f3;border:1px solid #ffd0d0;}
+.bbs-alert.warn{color:#f57c00;background:#fff8f0;border:1px solid #ffe0b2;}
+.bbs-msg-footer{margin-top:8px;padding-top:6px;border-top:1px solid #f5f5f5;display:flex;align-items:center;gap:6px;}
+.btn-bbs-like{background:none;border:1px solid #ddd;border-radius:20px;padding:4px 12px;font-size:.75rem;cursor:pointer;color:#888;display:inline-flex;align-items:center;gap:4px;transition:all .15s;}
+.btn-bbs-like:hover{border-color:#ff7675;color:#c0392b;background:#fff0f0;}
+.btn-bbs-like.liked{border-color:#ff7675;color:#c0392b;background:#fff0f0;font-weight:bold;}
+
+/* ── Bottom Nav ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:flex;z-index:200;box-shadow:0 -2px 8px rgba(0,0,0,.1);}
+.bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;text-decoration:none;color:#999;font-size:.58rem;gap:2px;}
+.bottom-nav a.active{color:var(--main-blue);}
+.bottom-nav-icon{font-size:1.2rem;}
+</style>
+</head>
+<body>
+
+<header id="site-header"></header>
+
+<div id="race-content">
+  <div style="text-align:center;padding:60px 20px;color:#999;">読み込み中...</div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="bottom-nav-icon">🏠</span>ホーム</a>
+  <a href="index.html"><span class="bottom-nav-icon">🤖</span>AI予想</a>
+  <a href="premium.html"><span class="bottom-nav-icon">👑</span>PREMIUM</a>
+  <a href="login.html" id="mypage-nav-link"><span class="bottom-nav-icon">👤</span>マイページ</a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script>
+RK.renderHeader();
+if (RK.getUser()) document.getElementById('mypage-nav-link').href = 'mypage.html';
+
+const params    = new URLSearchParams(location.search);
+const raceId    = params.get('id');
+const data      = RK.getData();
+const race      = raceId ? data.races[raceId] : null;
+const isPremium = RK.isPremium();
+
+/* ── ユーティリティ ── */
+function bikeStyle(num) {
+  const c = RK.bikeColors[num] || {bg:'#eee',text:'#333',border:'#ccc'};
+  return `style="background:${c.bg};color:${c.text};border-color:${c.border};"`;
+}
+function markHtml(mark) {
+  const m = RK.markStyles[mark] || RK.markStyles[''];
+  return `<span class="mark-cell" style="color:${m.color};">${mark || '　'}</span>`;
+}
+function rootScoreClass(s) {
+  if (s >= 80) return 'root-score-high';
+  if (s >= 65) return 'root-score-mid';
+  return 'root-score-low';
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   展開予想グリッドボード
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function buildTacticsBoard(race) {
+  const TB_COLS = 9, TB_ROWS = 3;
+  const laneLabels = ['外', '中', '内'];
+  const colStyle = `grid-template-columns:22px repeat(${TB_COLS},minmax(46px,1fr));`;
+  const board = race.tactics?.board;
+
+  /* ── 新グリッド形式 ── */
+  if (board && board.length > 0) {
+    const cellMap = {};
+    board.forEach(it => { cellMap[`${it.row}_${it.col}`] = it; });
+    let gridHtml = '';
+    for (let r = 0; r < TB_ROWS; r++) {
+      gridHtml += `<div class="tb-lane-lbl">${laneLabels[r]}</div>`;
+      for (let c = 0; c < TB_COLS; c++) {
+        const it = cellMap[`${r}_${c}`];
+        const gcClass = c === 0 ? ' gc' : '';
+        if (it) {
+          const bc = RK.bikeColors[it.num] || { bg:'#eee', text:'#333', border:'#ccc' };
+          const arrCnt = Math.max(0, Math.min(3, it.arrows || 0));
+          const arr = '←'.repeat(arrCnt);
+          const arrHtml = arrCnt > 0 ? `<span class="tb-arr spd-${arrCnt}">${arr}</span>` : '';
+          gridHtml += `<div class="tb-cell hr${gcClass}"><div class="tb-rdr">${arrHtml}<div class="tb-num" style="background:${bc.bg};color:${bc.text};border-color:${bc.border};">${it.num}</div></div></div>`;
+        } else {
+          gridHtml += `<div class="tb-cell${gcClass}"></div>`;
+        }
+      }
+    }
+    const comment = race.tactics?.comment || '';
+    return `<div class="tb-wrap">
+      <div class="tb-head">
+        <span class="tb-title">🏁 最終BS 展開イメージ</span>
+        <span class="tb-note">← ゴール方向</span>
+      </div>
+      <div class="tb-scroll">
+        <div style="display:grid;${colStyle}gap:4px;margin-bottom:3px;">
+          <div></div>
+          <div style="text-align:center;font-size:.58rem;color:var(--hot-red);font-weight:bold;">← GOAL</div>
+          ${Array(TB_COLS - 1).fill('<div></div>').join('')}
+        </div>
+        <div style="display:grid;${colStyle}gap:4px;">${gridHtml}</div>
+      </div>
+      <div class="tb-legend">
+        <span style="color:var(--hot-red);font-weight:bold;border-left:3px solid var(--hot-red);padding-left:6px;">ゴール側</span>
+        <span style="color:var(--hot-red);">←←← 全速</span>
+        <span style="color:var(--hot-red);">←← 加速</span>
+        <span style="color:var(--hot-red);">← 通常</span>
+        <span>なし = 様子見</span>
+      </div>
+      ${comment ? `<div class="tb-comment">${comment}</div>` : ''}
+    </div>`;
+  }
+
+  /* ── 旧形式フォールバック (lead / midField / chase) ── */
+  const t = race.tactics || {};
+  const lead = t.lead || [], mid = t.midField || [], chase = t.chase || [];
+  if (!lead.length && !mid.length && !chase.length) {
+    return '<div style="color:#bbb;text-align:center;padding:20px;font-size:.85rem;">展開予想は未設定です</div>';
+  }
+  function legacyRow(color, label, nums) {
+    const html = nums.map((n, i) => {
+      const rd = race.riders.find(r => r.num === n);
+      return (i > 0 ? '<span class="tactics-arrow">→</span>' : '')
+        + `<span class="tactics-bike" ${bikeStyle(n)}>${n}</span>`
+        + `<small style="font-size:.62rem;color:#666;"> ${rd ? rd.name.split(' ')[1] || '' : ''}</small>`;
+    }).join('');
+    return `<div class="tactics-row">
+      <div class="tactics-label"><span class="dot" style="background:${color};"></span>${label}</div>
+      <div class="tactics-riders">${html}</div>
+    </div>`;
+  }
+  return `<div class="tactics-board">
+    ${legacyRow('var(--hot-red)', '先頭集団（逃げ・番手）', lead)}
+    ${legacyRow('var(--register-orange)', '中団', mid)}
+    ${legacyRow('#888', '後方（追込み・捲り）', chase)}
+    <div style="margin-top:10px;font-size:.7rem;color:#aaa;text-align:center;">→ ゴールへ向かう展開イメージ</div>
+  </div>`;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ライン予想セクションを構築
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function buildLinePred(race) {
+  const lp = race.linePrediction;
+  if (!lp || !lp.groups || lp.groups.length === 0) return '';
+
+  const groupsHtml = lp.groups.map((nums, gi) => {
+    const ridersHtml = nums.map((n, i) => {
+      const rider = race.riders.find(r => r.num === n);
+      return (i > 0 ? `<span class="line-arrow">→</span>` : '')
+           + `<span class="line-bike" ${bikeStyle(n)}>${n}</span>`;
+    }).join('');
+    const nameRow = nums.map(n => {
+      const r = race.riders.find(r => r.num === n);
+      return r ? r.name.split(' ')[1] || r.name : `${n}号`;
+    }).join('→');
+    return `
+      <div class="line-group">
+        <div class="line-riders-row">${ridersHtml}</div>
+        <div class="line-name-row">${nameRow}</div>
+      </div>`;
+  }).join('<div class="line-divider"></div>');
+
+  return `
+    <div class="line-pred-wrap">
+      <div class="line-pred-title">ライン予想</div>
+      <div class="lines-row">${groupsHtml}</div>
+      ${lp.comment ? `<div class="line-comment">${lp.comment}</div>` : ''}
+    </div>`;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   出走表テーブルを構築（8カラム）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function buildEntryTable(race) {
+  const rows = race.riders.map(r => {
+    const rsClass = rootScoreClass(r.rootScore || 0);
+    return `<tr>
+      <td>${markHtml(r.mark || '')}</td>
+      <td><span class="bike-num" ${bikeStyle(r.num)}>${r.num}</span></td>
+      <td class="name-cell">
+        <span class="name-main">${r.name}</span>
+        <span class="name-sub">${r.pref}　${r.kiki || ''}</span>
+      </td>
+      <td><span class="rank-badge rank-${r.rank}">${r.rank}</span></td>
+      <td class="score-cell">${r.score != null ? r.score.toFixed(1) : '-'}</td>
+      <td><span class="style-badge style-${r.style}">${r.style}</span></td>
+      <td class="results-cell">${r.results || '-'}</td>
+      <td class="root-score-cell ${rsClass}">${r.rootScore != null ? r.rootScore : '-'}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div class="entry-table-wrap">
+      <table class="riders-table">
+        <thead>
+          <tr>
+            <th>印</th>
+            <th>車番</th>
+            <th style="text-align:left;padding-left:6px;">選手名</th>
+            <th>級班</th>
+            <th>競走得点</th>
+            <th>戦法</th>
+            <th>近走成績</th>
+            <th>ROOT点</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:8px;font-size:.65rem;color:#aaa;padding:0 2px;">
+      印：◎本命 ○対抗 ▲単穴 △連下 ✕印 　ROOT点：ROOT競輪独自のAIスコア（100点満点）
+    </div>`;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PRO USERソート
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let _raceSort = 'grade'; /* 'grade' | 'latest' */
+let _racePreds = [];
+let _raceId = null;
+let _raceUser = null;
+let _racePurchased = null;
+let _racePuRegistry = [];
+const _GRADE_RANK_PU = {'S級 PRO USER':1,'A級 PRO USER':2,'B級 PRO USER':3,'新人 PRO USER':4};
+
+function setRaceSort(s) {
+  _raceSort = s;
+  document.querySelectorAll('.pu-sort-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === _raceSort);
+  });
+  const wrap = document.getElementById('pu-cards-wrap');
+  if (wrap) wrap.innerHTML = _buildSortedPuCards();
+}
+
+function _getPuAvatarFromReg(u) {
+  const reg = _racePuRegistry.find(p => (u.proUserId && p.id === u.proUserId) || p.handle === u.handle);
+  return (reg && reg.avatarImg) ? reg.avatarImg : (u.avatarImg || null);
+}
+
+function _buildSinglePuCard(u) {
+  const isOpen     = _racePurchased.has(u.id);
+  const isAGrade   = u.grade && u.grade.startsWith('A');
+  const gradeClass = isAGrade ? 'a' : '';
+  const avatarImg  = _getPuAvatarFromReg(u);
+
+  const headHtml = `
+    <div class="pu-card-head">
+      ${avatarImg
+        ? `<img src="${avatarImg}" class="avatar" style="object-fit:cover;padding:0;">`
+        : `<div class="avatar" style="background:#2a2a2a;color:#555;font-size:1.2rem;">👤</div>`}
+      <div class="pu-user-info">
+        <div class="pu-user-name">${u.userName}<span class="pu-grade ${gradeClass}">${u.grade}</span></div>
+        <div class="pu-user-sub">${u.handle}　週間回収率 ${u.winRate}%　投稿 ${u.postCount}件</div>
+      </div>
+      <div class="pu-price-tag">
+        ${isOpen
+          ? `<span class="pu-purchased-badge">購入済み</span>`
+          : `<div class="pu-pt">${u.pointPrice}<small style="font-size:.55rem;"> pt</small></div>
+             <div class="pu-pt-label">ROOT POINT</div>`}
+      </div>
+    </div>`;
+
+  if (isOpen) {
+    return `<div class="pu-card">
+      ${headHtml}
+      <div class="pu-body-open">
+        <div class="pu-full-text">${u.text}</div>
+        <div class="pu-picks-open">
+          <div class="pu-picks-open-label">推奨買い目</div>
+          <div class="pu-picks-val">${u.picks}</div>
+        </div>
+        <div class="pu-like-row">
+          <button class="like-btn" data-likes="${u.likes}" onclick="toggleLike(this)">👍 いいね ${u.likes}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  let buyAreaHtml = '';
+  if (!_raceUser) {
+    buyAreaHtml = `<button class="btn-login-req" onclick="location.href='login.html?redirect='+encodeURIComponent(location.href)">ログインして購入する</button>`;
+  } else {
+    buyAreaHtml = `
+      <button class="btn-buy" onclick="doPurchase('${_raceId}','${u.id}',${u.pointPrice})">
+        💎 購入する（${u.pointPrice}pt）
+      </button>
+      <a href="premium.html" class="btn-buy-premium">👑 PREMIUM会員になる</a>`;
+  }
+
+  return `<div class="pu-card">
+    ${headHtml}
+    <div class="pu-body-locked">
+      <div class="pu-teaser">${u.teaser || u.text.substring(0, 45) + '...'}</div>
+      <div class="pu-picks-locked">
+        <div class="pu-picks-locked-label">推奨買い目</div>
+        <div class="pu-picks-blur">??-??-??</div>
+      </div>
+      <div class="pu-buy-area">${buyAreaHtml}</div>
+    </div>
+  </div>`;
+}
+
+function _buildSortedPuCards() {
+  if (_racePreds.length === 0) {
+    return `<div class="no-pred"><div class="no-pred-icon">💬</div><p>まだPRO USER予想がありません</p></div>`;
+  }
+  const sorted = [..._racePreds].sort((a, b) => {
+    if (_raceSort === 'grade') {
+      const ra = _GRADE_RANK_PU[a.grade] ?? 99;
+      const rb = _GRADE_RANK_PU[b.grade] ?? 99;
+      return ra !== rb ? ra - rb : (b.winRate || 0) - (a.winRate || 0);
+    } else {
+      const ta = parseInt((a.id || '').replace('up_', ''), 10) || 0;
+      const tb = parseInt((b.id || '').replace('up_', ''), 10) || 0;
+      return tb - ta;
+    }
+  });
+  return sorted.map(_buildSinglePuCard).join('');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   メインレンダリング
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function renderRace(race, id) {
+  const aiPred = data.proAiPredictions.find(p => p.raceId === id) || {};
+  const confPct = aiPred.confidence || 0;
+
+  const tacticsHtml = buildTacticsBoard(race);
+
+  /* ── PRO AI予想 ── */
+  let aiHtml = '';
+  if (isPremium) {
+    aiHtml = `<div class="ai-pro-card">
+      <h3>🤖 PRO AI予想 <span style="font-size:.7rem;font-weight:normal;opacity:.8;">PREMIUM</span></h3>
+      <div class="confidence-bar-wrap">
+        <div class="confidence-label">信頼度 ${confPct}%</div>
+        <div class="confidence-bar"><div class="confidence-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ai-picks-big">
+        <div class="label">推奨買い目</div>
+        <div class="val">${aiPred.picks || '??'}</div>
+      </div>
+      <div class="ai-detail">${race.aiProPrediction || ''}</div>
+    </div>`;
+  } else {
+    aiHtml = `<div class="premium-lock-overlay">
+      <div class="lock-blur">
+        <div class="ai-pro-card">
+          <h3>🤖 PRO AI予想</h3>
+          <div class="ai-picks-big"><div class="val">②-①-⑧</div></div>
+          <div class="ai-detail">【PRO AI分析】xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxx\n推奨買い目：??-??-??</div>
+        </div>
+      </div>
+      <div class="lock-mask">
+        <div class="lock-mask-icon">🔑</div>
+        <h4>PREMIUM会員限定</h4>
+        <p>PRO AI予想の全詳細・推奨買い目は<br>PREMIUM会員のみ閲覧できます<br>毎月1,000ROOT POINT進呈中！</p>
+        <a href="premium.html" class="btn-premium">PREMIUMに登録する</a>
+      </div>
+    </div>`;
+  }
+
+  /* ── PRO USER予想（有料購入型） ── */
+  const myPoints  = RK.getPoints();
+  const user      = RK.getUser();
+
+  /* モジュールレベルの状態に保存 → ソート切替で再利用 */
+  _raceId        = id;
+  _raceUser      = user;
+  _racePurchased = RK.getPurchasedSet();
+  _racePreds     = race.userPredictions || [];
+  _racePuRegistry = JSON.parse(localStorage.getItem('rk_prousers') || '[]');
+
+  /* PREMIUMでない場合のみ誘導バナーを表示 */
+  const premiumBannerHtml = isPremium ? '' : `
+    <div class="premium-free-banner">
+      <p>👑 <strong>PREMIUM会員</strong>は毎月<strong>1,000 ROOT POINT</strong>が進呈されます！<br>
+      ポイントはPRO USER予想の購入に使えます。1pt = 1円でも購入可能。</p>
+      <a href="premium.html" style="display:inline-block;background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-weight:bold;padding:8px 20px;border-radius:20px;text-decoration:none;font-size:.82rem;">PREMIUMに登録する</a>
+    </div>`;
+
+  const userPredHtml = `
+    <div class="pro-user-top">
+      <h2>👥 PRO USER予想</h2>
+      ${user ? `<div class="my-point-badge">💎 ${myPoints.toLocaleString()} pt</div>` : ''}
+    </div>
+    <div class="pro-user-what">
+      <strong>PRO USER予想とは？</strong><br>
+      ROOT競輪が認定した高実績の予想師のみが投稿できる有料コンテンツです。<br>
+      ROOT POINTを使って個別に購入できます。1pt = 1円で購入可能。PREMIUM会員は毎月1,000ptが進呈されます。
+    </div>
+    ${premiumBannerHtml}
+    <div class="pu-sort-bar">
+      <button class="pu-sort-btn active" data-sort="grade" onclick="setRaceSort('grade')">グレード順</button>
+      <button class="pu-sort-btn" data-sort="latest" onclick="setRaceSort('latest')">最新予想順</button>
+    </div>
+    <div id="pu-cards-wrap">${_buildSortedPuCards()}</div>`;
+
+  /* ── 全体組み立て ── */
+  document.getElementById('race-content').innerHTML = `
+    <div class="race-hero">
+      <div class="race-grade-badge">${race.grade}　${race.category}</div>
+      <h1>${race.venue} ${race.raceNum}R</h1>
+      <div class="race-hero-sub">${race.distance}　バンク</div>
+      <div class="deadline-row">
+        <span class="deadline-badge">締切 ${race.deadline}</span>
+        <span class="distance-badge">${race.distance}</span>
+      </div>
+    </div>
+
+    <div class="race-tab-bar">
+      <button class="active" data-rtab="entry">出走表</button>
+      <button data-rtab="pred">展開予想</button>
+      <button data-rtab="bbs">💬 掲示板</button>
+      <button data-rtab="ai">🤖 PRO AI</button>
+      <button data-rtab="uservoice">👥 USER予想</button>
+    </div>
+
+    <!-- 出走表タブ -->
+    <div class="tab-panel active" id="rtab-entry">
+      ${buildLinePred(race)}
+      ${buildEntryTable(race)}
+    </div>
+
+    <!-- 展開予想タブ -->
+    <div class="tab-panel" id="rtab-pred">
+      <div class="pred-section">
+        <h2>🎯 展開予想</h2>
+        ${tacticsHtml}
+        <div class="free-pred-card">
+          <h3>無料予想コメント</h3>
+          <div class="free-pred-text">${race.freePrediction}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 掲示板タブ -->
+    <div class="tab-panel" id="rtab-bbs">
+      ${buildBBSPanel(id)}
+    </div>
+
+    <!-- PRO AIタブ -->
+    <div class="tab-panel" id="rtab-ai">
+      <div class="pred-section">
+        <h2>🤖 PRO AI予想</h2>
+        ${aiHtml}
+      </div>
+    </div>
+
+    <!-- PRO USER予想タブ -->
+    <div class="tab-panel" id="rtab-uservoice">
+      ${userPredHtml}
+    </div>`;
+
+  /* タブ切り替え */
+  document.querySelectorAll('.race-tab-bar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.race-tab-bar button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('rtab-' + btn.dataset.rtab)?.classList.add('active');
+    });
+  });
+
+  /* リロード後のタブ復元 */
+  const gotoTab = sessionStorage.getItem('rk_goto_tab');
+  if (gotoTab) {
+    sessionStorage.removeItem('rk_goto_tab');
+    const targetBtn = document.querySelector(`.race-tab-bar button[data-rtab="${gotoTab}"]`);
+    if (targetBtn) targetBtn.click();
+  }
+
+  /* （ソートボタンは今後拡張用に残す） */
+
+  /* 信頼度バーアニメ */
+  setTimeout(() => {
+    const fill = document.querySelector('.confidence-fill');
+    if (fill) fill.style.width = confPct + '%';
+  }, 300);
+}
+
+/* ── いいねボタン ── */
+function toggleLike(btn) {
+  const base = parseInt(btn.dataset.likes) || 0;
+  btn.classList.toggle('liked');
+  btn.textContent = `👍 いいね ${btn.classList.contains('liked') ? base + 1 : base}`;
+}
+
+/* ── PRO USER予想 購入処理 ── */
+function doPurchase(raceId, predId, cost) {
+  const result = RK.purchasePred(predId, cost);
+  if (result.status === 'no_login') {
+    location.href = 'login.html?redirect=' + encodeURIComponent(location.href);
+    return;
+  }
+  if (result.status === 'no_points') {
+    showPurchaseError(cost);
+    return;
+  }
+  /* 購入成功 → 売上ログ記録（支払内訳付き） */
+  RK.logPuSale(raceId, predId, cost, result.paidPt, result.grantPt);
+  /* USER予想タブを維持してリロード */
+  sessionStorage.setItem('rk_goto_tab', 'uservoice');
+  location.reload();
+}
+
+function showPurchaseError(cost) {
+  const myPt = RK.getPoints();
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:24px 20px;max-width:320px;width:100%;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:10px;">💎</div>
+      <h3 style="font-size:1rem;margin-bottom:8px;color:#333;">ROOT POINTが不足しています</h3>
+      <p style="font-size:.82rem;color:#888;margin-bottom:4px;">必要：${cost}pt　保有：${myPt}pt</p>
+      <p style="font-size:.82rem;color:#888;margin-bottom:16px;">不足：${cost - myPt}pt</p>
+      <a href="premium.html" style="display:block;background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-weight:bold;padding:12px;border-radius:20px;text-decoration:none;font-size:.88rem;margin-bottom:10px;">👑 PREMIUM会員で毎月1,000pt進呈</a>
+      <button onclick="this.closest('div').parentElement.remove()" style="background:none;border:none;color:#aaa;font-size:.8rem;cursor:pointer;">閉じる</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   掲示板
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const BBS_NG = ['バカ','馬鹿','アホ','クソ','死ね','殺','うざい','キモい','きもい','ゴミ','消えろ','氏ね','ハゲ','デブ','ブス','クズ','カス','ゴキブリ','チョン','基地外'];
+
+function escBBS(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatBBSTime(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000)       return 'たった今';
+  if (diff < 3600000)     return Math.floor(diff / 60000) + '分前';
+  if (diff < 86400000)    return Math.floor(diff / 3600000) + '時間前';
+  const d = new Date(ts);
+  return (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+const BBS_AVATAR_COLORS = ['#0047AB','#e53935','#2e7d32','#f57c00','#6a1b9a','#00838f','#ad1457'];
+function bbsAvatarColor(email) {
+  let h = 0;
+  for (let i = 0; i < email.length; i++) h = (h * 31 + email.charCodeAt(i)) >>> 0;
+  return BBS_AVATAR_COLORS[h % BBS_AVATAR_COLORS.length];
+}
+
+function buildBBSMsgHtml(msgs, raceId) {
+  if (msgs.length === 0) {
+    return '<div class="bbs-empty">まだ投稿がありません。最初の投稿をしてみましょう！</div>';
+  }
+  const myEmail = (RK.getUser() || {}).email || '';
+  return msgs.map(m => {
+    const initial     = escBBS((m.name || '?')[0]);
+    const color       = bbsAvatarColor(m.email || '');
+    const savedImg    = localStorage.getItem('rk_avatar_' + (m.email || ''));
+    const avatarInner = savedImg
+      ? `<img src="${savedImg}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="">`
+      : initial;
+    const premBadge  = m.premium ? '<span class="bbs-premium-badge">👑 PREMIUM</span>' : '';
+    const likes      = m.likes || [];
+    const likeCount  = likes.length;
+    const hasLiked   = myEmail && likes.includes(myEmail);
+    const likeClass  = hasLiked ? 'btn-bbs-like liked' : 'btn-bbs-like';
+    const likeLabel  = likeCount > 0 ? `👍 ${likeCount}` : '👍';
+    const rId        = escBBS(raceId || '');
+    const mId        = escBBS(m.id);
+    return `<div class="bbs-msg" data-msg-id="${mId}">
+      <div class="bbs-msg-head">
+        <div class="bbs-avatar" style="background:${savedImg ? 'transparent' : color};">${avatarInner}</div>
+        <span class="bbs-name">${escBBS(m.name)}${premBadge}</span>
+        <span class="bbs-time">${formatBBSTime(m.ts)}</span>
+      </div>
+      <div class="bbs-msg-text">${escBBS(m.text).replace(/\n/g,'<br>')}</div>
+      <div class="bbs-msg-footer">
+        <button class="${likeClass}" onclick="toggleBBSLike('${rId}','${mId}',this)">${likeLabel}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleBBSLike(raceId, msgId, btn) {
+  const user = RK.getUser();
+  if (!user) {
+    showBBSAlert('error', 'いいねするにはログインが必要です');
+    return;
+  }
+  const msgs = RK.getBBSMessages(raceId);
+  const msg  = msgs.find(m => m.id === msgId);
+  if (!msg) return;
+  if (!msg.likes) msg.likes = [];
+  const idx = msg.likes.indexOf(user.email);
+  if (idx === -1) {
+    msg.likes.push(user.email);
+  } else {
+    msg.likes.splice(idx, 1);
+  }
+  RK.saveBBSMessages(raceId, msgs);
+  /* ボタンを即時更新 */
+  const hasLiked  = idx === -1;
+  const likeCount = msg.likes.length;
+  btn.className   = hasLiked ? 'btn-bbs-like liked' : 'btn-bbs-like';
+  btn.textContent = likeCount > 0 ? `👍 ${likeCount}` : '👍';
+}
+
+function buildBBSPanel(raceId) {
+  const user = RK.getUser();
+  const msgs = RK.getBBSMessages(raceId);
+
+  const rulesHtml = `<div class="bbs-rules">
+    <strong>掲示板ルール</strong><br>
+    ・60秒以内の連投は禁止です<br>
+    ・暴言・誹謗中傷は禁止です<br>
+    ・有料コンテンツ（PRO AI・PRO USER予想）の内容を投稿することは禁止です<br>
+    ルール違反は予告なく利用停止となります。
+  </div>`;
+
+  let formHtml = '';
+  if (!user) {
+    formHtml = `<div class="bbs-login-notice">
+      <p style="font-size:.85rem;color:#666;margin-bottom:14px;">投稿するにはログインが必要です</p>
+      <a href="login.html?redirect=${encodeURIComponent(location.href)}"
+         style="display:inline-block;background:var(--main-blue);color:#fff;padding:10px 28px;border-radius:20px;font-size:.85rem;font-weight:bold;text-decoration:none;">
+        ログインして参加する
+      </a>
+    </div>`;
+  } else if (!user.emailVerified) {
+    formHtml = `<div class="bbs-login-notice">
+      <p style="font-size:1.3rem;margin-bottom:8px;">✉️</p>
+      <p style="font-size:.85rem;font-weight:bold;color:#333;margin-bottom:6px;">本登録が完了していません</p>
+      <p style="font-size:.78rem;color:#888;line-height:1.7;margin-bottom:14px;">
+        掲示板への書き込みには本登録が必要です。<br>
+        登録メールのリンクをクリックして本登録を完了してください。
+      </p>
+      <a href="register.html"
+         style="display:inline-block;background:var(--main-blue);color:#fff;padding:10px 28px;border-radius:20px;font-size:.85rem;font-weight:bold;text-decoration:none;">
+        本登録を完了する
+      </a>
+    </div>`;
+  } else {
+    formHtml = `<div class="bbs-post-form">
+      <textarea id="bbs-input" placeholder="このレースについてコメントしよう&#10;（連投・暴言・有料情報の公開は禁止）" maxlength="300"
+        oninput="document.getElementById('bbs-char').textContent=this.value.length;"></textarea>
+      <div class="bbs-post-footer">
+        <small><span id="bbs-char">0</span>/300文字</small>
+        <button class="btn-bbs-post" onclick="doPostBBS('${escBBS(raceId)}')">投稿する</button>
+      </div>
+      <div class="bbs-alert error" id="bbs-error"></div>
+      <div class="bbs-alert warn"  id="bbs-cooldown"></div>
+    </div>`;
+  }
+
+  return `${rulesHtml}${formHtml}<div class="bbs-msg-list" id="bbs-msg-list">${buildBBSMsgHtml(msgs, raceId)}</div>`;
+}
+
+function doPostBBS(raceId) {
+  const user = RK.getUser();
+  if (!user) return;
+  if (!user.emailVerified) { showBBSAlert('error', '本登録が完了していません。登録メールのリンクをクリックして本登録を完了してください。'); return; }
+
+  const input  = document.getElementById('bbs-input');
+  const errEl  = document.getElementById('bbs-error');
+  const coolEl = document.getElementById('bbs-cooldown');
+  const text   = input.value.trim();
+
+  errEl.classList.remove('show');
+  coolEl.classList.remove('show');
+
+  if (!text) { showBBSAlert('error','メッセージを入力してください'); return; }
+  if (text.length > 300) { showBBSAlert('error','300文字以内で入力してください'); return; }
+
+  /* NG ワードチェック */
+  const ng = BBS_NG.find(w => text.includes(w));
+  if (ng) { showBBSAlert('error','不適切な表現が含まれているため投稿できません'); return; }
+
+  /* 連投チェック（60秒） */
+  const lastKey   = 'rk_bbs_last_' + raceId + '_' + user.email;
+  const lastTs    = parseInt(localStorage.getItem(lastKey) || '0');
+  const remaining = Math.ceil((lastTs + 60000 - Date.now()) / 1000);
+  if (remaining > 0) {
+    showBBSAlert('warn', '連投防止：あと ' + remaining + ' 秒お待ちください');
+    return;
+  }
+
+  /* 保存 */
+  const now  = Date.now();
+  const msgs = RK.getBBSMessages(raceId);
+  msgs.push({
+    id:      now + '_' + Math.random().toString(36).slice(2,6),
+    email:   user.email,
+    name:    user.name,
+    premium: RK.isPremium(),
+    text,
+    ts: now
+  });
+  if (msgs.length > 200) msgs.splice(0, msgs.length - 200);
+  RK.saveBBSMessages(raceId, msgs);
+  localStorage.setItem(lastKey, String(now));
+
+  /* 表示を更新 */
+  input.value = '';
+  document.getElementById('bbs-char').textContent = '0';
+  const listEl = document.getElementById('bbs-msg-list');
+  if (listEl) listEl.innerHTML = buildBBSMsgHtml(msgs, raceId);
+}
+
+function showBBSAlert(type, msg) {
+  const id = type === 'error' ? 'bbs-error' : 'bbs-cooldown';
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+/* ── 起動 ── */
+(async () => {
+  await RK.init();
+  if (race) {
+    renderRace(race, raceId);
+  } else {
+    const venueId     = params.get('venue');
+    const firstRaceId = Object.keys(data.races).find(k => data.races[k].venue === venueId || k.startsWith(venueId||''));
+    if (firstRaceId && data.races[firstRaceId]) {
+      renderRace(data.races[firstRaceId], firstRaceId);
+    } else {
+      document.getElementById('race-content').innerHTML = `
+        <div style="text-align:center;padding:60px 20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">🏁</div>
+          <p style="color:#666;margin-bottom:16px;">レース情報が見つかりません</p>
+          <a href="index.html" style="color:var(--main-blue);">← TOPへ戻る</a>
+        </div>`;
+    }
+  }
+})();
+</script>
+</body>
+</html>

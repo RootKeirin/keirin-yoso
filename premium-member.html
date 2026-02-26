@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PREMIUM会員ページ | ROOT競輪</title>
+<style>
+:root{
+  --main-blue:#0047AB;--sub-dark:#001f4d;--accent-yellow:#FFEB3B;
+  --premium-gold:#c8a400;--premium-dark:#7a5c00;--hot-red:#ff3b3b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:#0a0a14;color:#fff;min-height:100vh;padding-bottom:80px;line-height:1.5;}
+
+/* ── Header ── */
+header{background:rgba(0,0,0,.7);backdrop-filter:blur(10px);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(200,164,0,.25);}
+.site-title{font-weight:900;font-size:1rem;color:var(--accent-yellow);text-decoration:none;}
+.btn-back{color:#aaa;text-decoration:none;font-size:.82rem;}
+.btn-header-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#ccc;font-size:.7rem;padding:5px 10px;border-radius:6px;cursor:pointer;}
+
+/* ── Hero ── */
+.pm-hero{padding:28px 20px 22px;text-align:center;background:linear-gradient(180deg,#1a0e00 0%,#0a0a14 100%);position:relative;overflow:hidden;}
+.pm-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(200,164,0,.2) 0%,transparent 65%);pointer-events:none;}
+.pm-crown{font-size:3rem;display:block;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+.pm-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(200,164,0,.2),rgba(245,216,0,.1));border:1.5px solid var(--premium-gold);color:var(--premium-gold);font-size:.78rem;font-weight:bold;padding:5px 14px;border-radius:20px;margin:10px 0 6px;}
+.pm-name{font-size:1.25rem;font-weight:900;color:#fff;margin-bottom:2px;}
+.pm-email{font-size:.72rem;color:#888;}
+
+/* ── Section wrapper ── */
+.pm-section{padding:0 14px;margin-top:16px;}
+
+/* ── カード共通 ── */
+.pm-card{background:rgba(255,255,255,.05);border:1px solid rgba(200,164,0,.25);border-radius:16px;padding:18px;}
+.pm-card-gold{background:linear-gradient(135deg,rgba(200,164,0,.12),rgba(245,216,0,.06));border-color:var(--premium-gold);}
+.pm-card-blue{background:linear-gradient(135deg,rgba(0,71,171,.3),rgba(0,31,77,.2));border-color:rgba(0,71,171,.5);}
+.pm-card + .pm-card{margin-top:12px;}
+.pm-card-title{font-size:.7rem;font-weight:bold;color:var(--premium-gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* ── サブスクリプション情報 ── */
+.sub-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.82rem;}
+.sub-row:last-child{border-bottom:none;}
+.sub-label{color:#888;}
+.sub-val{color:#eee;font-weight:bold;}
+.sub-val.gold{color:var(--premium-gold);}
+.sub-val.green{color:#56d364;}
+.plan-tag{display:inline-block;background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-size:.65rem;font-weight:bold;padding:2px 10px;border-radius:10px;}
+.manage-btn{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#ccc;font-size:.8rem;font-weight:bold;padding:10px;border-radius:10px;text-decoration:none;cursor:pointer;}
+.manage-btn:hover{background:rgba(255,255,255,.12);}
+
+/* ── ROOT POINT ── */
+.point-big-row{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;}
+.point-big{font-size:2.6rem;font-weight:900;color:#fff;letter-spacing:.03em;}
+.point-unit{font-size:.9rem;color:rgba(255,255,255,.6);}
+.point-note{font-size:.72rem;color:rgba(255,255,255,.55);margin-bottom:14px;line-height:1.6;}
+.monthly-grant-bar{background:rgba(255,255,255,.1);border-radius:6px;height:8px;overflow:hidden;margin-bottom:4px;}
+.monthly-grant-fill{height:100%;background:linear-gradient(90deg,#c8a400,#f5d800);border-radius:6px;transition:width .4s;}
+.grant-label{display:flex;justify-content:space-between;font-size:.68rem;color:rgba(255,255,255,.5);}
+.pt-actions{display:flex;gap:8px;margin-top:14px;}
+.btn-pt{flex:1;padding:9px;border-radius:20px;font-weight:bold;font-size:.78rem;cursor:pointer;border:none;text-align:center;}
+.btn-pt-buy{background:#fff;color:var(--main-blue);}
+.btn-pt-hist{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)!important;}
+.pt-history-wrap{background:rgba(0,0,0,.3);border-radius:10px;padding:12px;margin-top:10px;display:none;}
+.pt-history-wrap.show{display:block;}
+.pt-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.8rem;}
+.pt-row:last-child{border-bottom:none;}
+.pt-plus{color:#56d364;font-weight:bold;}
+.pt-minus{color:var(--hot-red);font-weight:bold;}
+.pt-date{font-size:.67rem;color:#666;}
+
+/* ── クイックアクセス ── */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.quick-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 12px;text-align:center;text-decoration:none;color:#fff;transition:background .15s,transform .1s;display:block;}
+.quick-card:hover{background:rgba(255,255,255,.1);transform:translateY(-2px);}
+.quick-card.gold{border-color:rgba(200,164,0,.35);background:rgba(200,164,0,.07);}
+.quick-icon{font-size:1.8rem;display:block;margin-bottom:6px;}
+.quick-title{font-size:.8rem;font-weight:bold;color:#eee;margin-bottom:2px;}
+.quick-desc{font-size:.65rem;color:#888;line-height:1.4;}
+.quick-badge{display:inline-block;background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-size:.55rem;font-weight:bold;padding:1px 6px;border-radius:6px;margin-top:4px;}
+
+/* ── 特典リスト ── */
+.benefit-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.benefit-list li{display:flex;align-items:flex-start;gap:10px;font-size:.8rem;color:#bbb;line-height:1.5;}
+.benefit-list li::before{content:"✓";color:var(--premium-gold);font-weight:bold;flex-shrink:0;margin-top:1px;}
+
+/* ── 解約・管理 ── */
+.manage-section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;}
+.manage-section p{font-size:.78rem;color:#888;line-height:1.7;margin-bottom:12px;}
+.btn-cancel{display:block;text-align:center;background:rgba(255,59,59,.12);border:1px solid rgba(255,59,59,.3);color:#ff8080;font-size:.8rem;font-weight:bold;padding:10px;border-radius:10px;text-decoration:none;cursor:pointer;}
+.btn-cancel:hover{background:rgba(255,59,59,.2);}
+
+/* ── セクションタイトル ── */
+.sec-label{font-size:.68rem;font-weight:bold;color:var(--premium-gold);letter-spacing:.12em;text-transform:uppercase;margin:22px 14px 10px;display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:"";flex:1;height:1px;background:rgba(200,164,0,.2);}
+
+/* ── Bottom Nav ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.92);border-top:1px solid rgba(255,255,255,.1);display:flex;z-index:200;}
+.bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;text-decoration:none;color:#555;font-size:.58rem;gap:2px;}
+.bottom-nav a.active{color:var(--premium-gold);}
+.bottom-nav-icon{font-size:1.2rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="btn-back">← ホーム</a>
+  <a href="index.html" class="site-title">ROOT競輪</a>
+  <button class="btn-header-logout" onclick="doLogout()">ログアウト</button>
+</header>
+
+<!-- Hero -->
+<div class="pm-hero">
+  <span class="pm-crown">👑</span>
+  <div class="pm-badge">👑 PREMIUM会員</div>
+  <div class="pm-name" id="pm-name">---</div>
+  <div class="pm-email" id="pm-email">---</div>
+</div>
+
+<!-- サブスクリプション情報 -->
+<div class="sec-label">サブスクリプション</div>
+<div class="pm-section">
+  <div class="pm-card pm-card-gold">
+    <div class="pm-card-title">📋 ご契約情報</div>
+    <div class="sub-row">
+      <span class="sub-label">プラン</span>
+      <span class="sub-val" id="sub-plan"><span class="plan-tag">PREMIUM</span></span>
+    </div>
+    <div class="sub-row">
+      <span class="sub-label">ステータス</span>
+      <span class="sub-val green">● 有効</span>
+    </div>
+    <div class="sub-row">
+      <span class="sub-label">サブスクリプションID</span>
+      <span class="sub-val gold" id="sub-id" style="font-size:.72rem;word-break:break-all;">---</span>
+    </div>
+    <div class="sub-row">
+      <span class="sub-label">次回更新</span>
+      <span class="sub-val" id="sub-renewal">PayPalにてご確認ください</span>
+    </div>
+    <a href="https://www.paypal.com/myaccount/autopay/" target="_blank" class="manage-btn">
+      🔗 PayPalでサブスクを管理する
+    </a>
+  </div>
+</div>
+
+<!-- ROOT POINT -->
+<div class="sec-label">ROOT POINT</div>
+<div class="pm-section">
+  <div class="pm-card pm-card-blue">
+    <div class="pm-card-title">💎 所持ポイント</div>
+    <div class="point-big-row">
+      <span class="point-big" id="pm-points">0</span>
+      <span class="point-unit">pt</span>
+    </div>
+    <p class="point-note">毎月1,000ptが自動付与されます。<br>1pt = 1円でPRO USER予想の購入に利用できます。</p>
+    <div class="monthly-grant-bar">
+      <div class="monthly-grant-fill" id="grant-bar" style="width:0%;"></div>
+    </div>
+    <div class="grant-label">
+      <span>今月の進呈まで</span>
+      <span id="grant-days">---</span>
+    </div>
+    <div class="pt-actions">
+      <button class="btn-pt btn-pt-buy" onclick="location.href='mypage.html'">ポイント購入</button>
+      <button class="btn-pt btn-pt-hist" onclick="togglePtHistory()">履歴を見る</button>
+    </div>
+    <div class="pt-history-wrap" id="pt-history">
+      <div id="pt-history-list">
+        <div class="pt-row">
+          <span>月次ポイント進呈</span>
+          <span class="pt-plus">+1,000 pt</span>
+          <span class="pt-date">2026-02-01</span>
+        </div>
+        <div class="pt-row">
+          <span>PRO USER予想 購入</span>
+          <span class="pt-minus">-200 pt</span>
+          <span class="pt-date">2026-01-28</span>
+        </div>
+        <div class="pt-row">
+          <span>月次ポイント進呈</span>
+          <span class="pt-plus">+1,000 pt</span>
+          <span class="pt-date">2026-01-01</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- クイックアクセス -->
+<div class="sec-label">プレミアム機能</div>
+<div class="pm-section">
+  <div class="quick-grid">
+    <a href="index.html" class="quick-card gold">
+      <span class="quick-icon">🤖</span>
+      <div class="quick-title">PRO AI予想</div>
+      <div class="quick-desc">全レースの詳細AI分析を閲覧</div>
+      <div class="quick-badge">見放題</div>
+    </a>
+    <a href="index.html" class="quick-card gold">
+      <span class="quick-icon">👤</span>
+      <div class="quick-title">PRO USER予想</div>
+      <div class="quick-desc">認定プロユーザーの予想をポイント購入</div>
+      <div class="quick-badge">1pt=1円</div>
+    </a>
+    <a href="index.html" class="quick-card">
+      <span class="quick-icon">🏁</span>
+      <div class="quick-title">レース一覧</div>
+      <div class="quick-desc">開催中・本日のレースをチェック</div>
+    </a>
+    <a href="mypage.html" class="quick-card">
+      <span class="quick-icon">👤</span>
+      <div class="quick-title">マイページ</div>
+      <div class="quick-desc">お知らせ・お問い合わせはこちら</div>
+    </a>
+  </div>
+</div>
+
+<!-- PREMIUM特典まとめ -->
+<div class="sec-label">PREMIUM特典一覧</div>
+<div class="pm-section">
+  <div class="pm-card">
+    <ul class="benefit-list">
+      <li>PRO AI予想 — 全レース見放題（信頼度スコア・推奨買い目付き）</li>
+      <li>ROOT POINT 毎月1,000pt自動付与（1pt = 1円で利用可能）</li>
+      <li>広告完全非表示でストレスフリーな閲覧</li>
+      <li>実力7チャレンジ — 1チャレンジ20通りまで予想可能</li>
+      <li>詳細選手データ（直近成績・バンク別・脚質相性）</li>
+      <li>的中履歴・月別収支グラフで投資効率を可視化</li>
+      <li>締切前プッシュ通知（AI予想更新アラート含む）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- サブスク管理・解約 -->
+<div class="sec-label">サブスク管理</div>
+<div class="pm-section">
+  <div class="manage-section">
+    <p>解約・プラン変更はPayPalのサブスクリプション管理ページから行えます。解約後は次回更新日までPREMIUM特典が継続して利用できます。</p>
+    <a href="https://www.paypal.com/myaccount/autopay/" target="_blank" class="manage-btn" style="margin-bottom:10px;">
+      🔗 PayPalでプラン変更・解約する
+    </a>
+    <a href="#" class="btn-cancel" onclick="confirmCancel(); return false;">解約の確認（PayPalへ）</a>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="bottom-nav-icon">🏠</span>ホーム</a>
+  <a href="index.html"><span class="bottom-nav-icon">🤖</span>AI予想</a>
+  <a href="premium.html"><span class="bottom-nav-icon">👑</span>PREMIUM</a>
+  <a href="mypage.html"><span class="bottom-nav-icon">👤</span>マイページ</a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* ── 認証チェック（プレミアム期限も同時確認） ── */
+if (!RK.getUser()) { location.href = 'login.html?redirect=premium-member.html'; }
+/* isPremium() が checkPremiumExpiry() を呼び出して期限切れを処理する */
+if (!RK.isPremium()) { location.href = 'premium.html'; }
+const currentUser = RK.getUser();  /* isPremium() がユーザーを更新した後に再取得 */
+
+/* ── 基本情報描画 ── */
+document.getElementById('pm-name').textContent  = currentUser.name;
+document.getElementById('pm-email').textContent = currentUser.email;
+document.getElementById('pm-points').textContent = (currentUser.points || 0).toLocaleString();
+
+/* ── サブスク情報 ── */
+const storedPlan  = currentUser.premiumPlan;
+const storedSubId = currentUser.premiumSubId;
+
+if (storedPlan) {
+  const planLabel = storedPlan === 'annual' ? '年間プラン（¥13,900/年）' : '月額プラン（¥1,490/月）';
+  document.getElementById('sub-plan').innerHTML =
+    `<span class="plan-tag">PREMIUM</span> <span style="font-size:.75rem;color:#ccc;">${planLabel}</span>`;
+}
+if (storedSubId) {
+  document.getElementById('sub-id').textContent = storedSubId;
+}
+
+/* ── 月次付与プログレスバー ── */
+(function() {
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const month = now.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const dayPassed   = now.getDate();
+  const daysLeft    = daysInMonth - dayPassed + 1;
+  const pct         = Math.round((dayPassed / daysInMonth) * 100);
+  document.getElementById('grant-bar').style.width = pct + '%';
+  document.getElementById('grant-days').textContent = `${daysLeft}日後（来月1日）`;
+})();
+
+/* ── ポイント履歴トグル ── */
+function togglePtHistory() {
+  document.getElementById('pt-history').classList.toggle('show');
+}
+
+/* ── ログアウト ── */
+function doLogout() {
+  if (confirm('ログアウトしますか？')) {
+    RK.logout();
+    location.href = 'index.html';
+  }
+}
+
+/* ── 解約確認 ── */
+function confirmCancel() {
+  if (confirm('解約はPayPalのサブスクリプション管理ページで行います。\nPayPalのページを開きますか？')) {
+    window.open('https://www.paypal.com/myaccount/autopay/', '_blank');
+  }
+}
+</script>
+</body>
+</html>

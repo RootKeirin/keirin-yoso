@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理者ログイン</title>
+<!-- セキュリティ: 検索エンジンにインデックスさせない -->
+<meta name="robots" content="noindex, nofollow">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.login-box{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.login-header{text-align:center;margin-bottom:28px;}
+.login-header .icon{font-size:2.5rem;margin-bottom:10px;}
+.login-header h1{font-size:1.2rem;font-weight:bold;color:#f0f6fc;}
+.login-header p{font-size:.75rem;color:#8b949e;margin-top:4px;}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:.78rem;font-weight:bold;color:#8b949e;margin-bottom:6px;}
+input[type="password"],input[type="text"]{width:100%;padding:11px 14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#f0f6fc;font-size:.9rem;outline:none;transition:border-color .2s;}
+input:focus{border-color:#388bfd;box-shadow:0 0 0 3px rgba(56,139,253,.15);}
+.btn-login{width:100%;background:#1f6feb;color:#fff;border:none;padding:13px;border-radius:8px;font-size:.9rem;font-weight:bold;cursor:pointer;transition:background .2s;}
+.btn-login:hover{background:#388bfd;}
+.btn-login:disabled{background:#30363d;color:#8b949e;cursor:not-allowed;}
+.error-msg{background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.4);color:#f85149;border-radius:6px;padding:10px 12px;font-size:.8rem;margin-top:12px;display:none;text-align:center;}
+.error-msg.show{display:block;}
+.lockout-msg{background:rgba(187,128,9,.15);border:1px solid rgba(187,128,9,.4);color:#e3b341;border-radius:6px;padding:10px 12px;font-size:.8rem;margin-top:12px;display:none;text-align:center;}
+.lockout-msg.show{display:block;}
+.home-link{margin-top:24px;font-size:.75rem;color:#8b949e;text-align:center;}
+.home-link a{color:#58a6ff;text-decoration:none;}
+.security-note{margin-top:20px;font-size:.68rem;color:#3d444d;text-align:center;line-height:1.5;}
+/* CAPTCHA fake */
+.captcha-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:10px;}
+.captcha-check{width:18px;height:18px;cursor:pointer;accent-color:#1f6feb;}
+.captcha-label{font-size:.82rem;color:#8b949e;flex:1;}
+.captcha-logo{font-size:.65rem;color:#555;text-align:right;}
+/* Attempt counter */
+.attempt-counter{font-size:.7rem;color:#555;text-align:right;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<div class="login-box">
+
+  <!-- ── STEP 1: ID + パスワード ── -->
+  <div id="login-step">
+    <div class="login-header">
+      <div class="icon">🔐</div>
+      <h1>管理者ログイン</h1>
+      <p>このページは管理者専用です</p>
+    </div>
+
+    <div class="form-group">
+      <label>管理者ID</label>
+      <input type="text" id="admin-id" placeholder="管理者IDを入力" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input type="password" id="admin-pw" placeholder="パスワードを入力">
+      <div class="attempt-counter" id="attempt-counter"></div>
+    </div>
+
+    <div class="captcha-row">
+      <input type="checkbox" class="captcha-check" id="captcha" onchange="updateBtn()">
+      <label class="captcha-label" for="captcha">私はロボットではありません</label>
+      <div class="captcha-logo">🛡 reCAPTCHA</div>
+    </div>
+
+    <button class="btn-login" id="btn-login" disabled onclick="doAdminLogin()">ログイン</button>
+    <div class="error-msg" id="error-msg">IDまたはパスワードが正しくありません</div>
+    <div class="lockout-msg" id="lockout-msg">ログイン試行回数を超えました。<br>しばらく後に再度お試しください。</div>
+    <div id="http-warn" style="display:none;margin-top:12px;background:rgba(227,179,65,.12);border:1px solid rgba(227,179,65,.4);color:#e3b341;border-radius:6px;padding:10px 12px;font-size:.78rem;text-align:center;line-height:1.6;">
+      ⚠️ このサイトはHTTPで動作しています。<br>
+      セキュリティのためHTTPSでのアクセスを推奨します。<br>
+      初回ログイン時は <strong>管理画面 → 設定</strong> でパスワードを変更してください。
+    </div>
+  </div>
+
+  <!-- ── STEP 2: TOTP認証（メイン管理者のみ） ── -->
+  <div id="totp-step" style="display:none;">
+    <div class="login-header">
+      <div class="icon">📱</div>
+      <h1>2段階認証</h1>
+      <p>認証アプリの6桁のコードを入力してください</p>
+    </div>
+    <div class="form-group">
+      <label>認証コード</label>
+      <input type="text" id="totp-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+        style="letter-spacing:6px;font-size:1.4rem;text-align:center;"
+        oninput="this.value=this.value.replace(/\D/g,''); document.getElementById('btn-totp').disabled=this.value.length!==6;">
+    </div>
+    <button class="btn-login" id="btn-totp" disabled onclick="doTOTPVerify()">認証する</button>
+    <div class="error-msg" id="totp-error">認証コードが正しくありません。もう一度お試しください。</div>
+    <div style="margin-top:14px;text-align:center;">
+      <button onclick="backToStep1()" style="background:none;border:none;color:#58a6ff;cursor:pointer;font-size:.75rem;">← パスワード入力に戻る</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="home-link"><a href="index.html">← サイトTOPに戻る</a></div>
+<div class="security-note">
+  このページへの不正アクセスは記録されます。<br>
+  管理者以外の方はただちにこのページを閉じてください。
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script>
+/* ── セキュリティ設定 ── */
+const MAX_ATTEMPTS = 5;          // 最大試行回数
+const LOCKOUT_MS   = 15 * 60 * 1000; // ロックアウト時間: 15分
+
+/* ── ロックアウト管理 ── */
+function getAttemptInfo() {
+  try { return JSON.parse(localStorage.getItem('rk_adminAttempts') || '{"count":0,"lockUntil":0}'); }
+  catch { return { count: 0, lockUntil: 0 }; }
+}
+function saveAttemptInfo(info) { localStorage.setItem('rk_adminAttempts', JSON.stringify(info)); }
+
+function isLockedOut() {
+  const info = getAttemptInfo();
+  if (info.lockUntil && Date.now() < info.lockUntil) return true;
+  if (info.lockUntil && Date.now() >= info.lockUntil) {
+    saveAttemptInfo({ count: 0, lockUntil: 0 });
+  }
+  return false;
+}
+
+function recordFailedAttempt() {
+  const info = getAttemptInfo();
+  info.count = (info.count || 0) + 1;
+  if (info.count >= MAX_ATTEMPTS) {
+    info.lockUntil = Date.now() + LOCKOUT_MS;
+    info.count = 0;
+  }
+  saveAttemptInfo(info);
+  updateAttemptCounter();
+}
+
+function resetAttempts() { saveAttemptInfo({ count: 0, lockUntil: 0 }); }
+
+function updateAttemptCounter() {
+  const info = getAttemptInfo();
+  const el = document.getElementById('attempt-counter');
+  if (info.count > 0) {
+    el.textContent = `残り試行回数: ${MAX_ATTEMPTS - info.count} 回`;
+  } else { el.textContent = ''; }
+}
+
+/* ── ボタン活性 ── */
+function updateBtn() {
+  const ok = document.getElementById('captcha').checked && !isLockedOut();
+  document.getElementById('btn-login').disabled = !ok;
+}
+
+/* ── TOTP ユーティリティ ── */
+function _b32dec(s) {
+  const C = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  s = s.replace(/=+$/, '').toUpperCase();
+  let bits = 0, val = 0;
+  const out = [];
+  for (const ch of s) {
+    const idx = C.indexOf(ch);
+    if (idx < 0) continue;
+    val = (val << 5) | idx; bits += 5;
+    if (bits >= 8) { out.push((val >>> (bits - 8)) & 0xff); bits -= 8; }
+  }
+  return new Uint8Array(out);
+}
+async function _totpAt(secret, counter) {
+  const key = await crypto.subtle.importKey('raw', _b32dec(secret), { name:'HMAC', hash:'SHA-1' }, false, ['sign']);
+  const msg = new Uint8Array(8);
+  let c = counter;
+  for (let i = 7; i >= 0; i--) { msg[i] = c & 0xff; c = Math.floor(c / 256); }
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, msg));
+  const off = sig[19] & 0xf;
+  return String(((sig[off]&0x7f)<<24|(sig[off+1]&0xff)<<16|(sig[off+2]&0xff)<<8|(sig[off+3]&0xff)) % 1000000).padStart(6,'0');
+}
+async function _verifyTOTP(secret, code) {
+  const t = Math.floor(Date.now() / 30000);
+  for (const d of [-1, 0, 1]) {
+    if (await _totpAt(secret, t + d) === String(code).padStart(6, '0')) return true;
+  }
+  return false;
+}
+
+/* ── TOTP ステップ管理 ── */
+let _pwVerified = false;
+
+function showTOTPStep() {
+  document.getElementById('login-step').style.display = 'none';
+  document.getElementById('totp-step').style.display  = 'block';
+  setTimeout(() => document.getElementById('totp-code').focus(), 50);
+}
+function backToStep1() {
+  _pwVerified = false;
+  document.getElementById('totp-step').style.display  = 'none';
+  document.getElementById('login-step').style.display = 'block';
+  document.getElementById('totp-code').value = '';
+  document.getElementById('btn-totp').disabled = true;
+  document.getElementById('totp-error').classList.remove('show');
+}
+async function doTOTPVerify() {
+  if (!_pwVerified) { backToStep1(); return; }
+  const code   = document.getElementById('totp-code').value.trim();
+  const secret = localStorage.getItem('rk_totpSecret');
+  const errEl  = document.getElementById('totp-error');
+  errEl.classList.remove('show');
+  const ok = await _verifyTOTP(secret, code);
+  if (ok) {
+    _pwVerified = false;
+    RK.setAdminSession();
+    location.href = 'admin-panel.html';
+  } else {
+    errEl.classList.add('show');
+    document.getElementById('totp-code').value = '';
+    document.getElementById('btn-totp').disabled = true;
+    document.getElementById('totp-code').focus();
+  }
+}
+
+/* ── ログイン処理 ── */
+async function doAdminLogin() {
+  if (isLockedOut()) {
+    document.getElementById('lockout-msg').classList.add('show');
+    document.getElementById('btn-login').disabled = true;
+    return;
+  }
+
+  const id = document.getElementById('admin-id').value.trim();
+  const pw = document.getElementById('admin-pw').value;
+  const errEl  = document.getElementById('error-msg');
+  const lockEl = document.getElementById('lockout-msg');
+  errEl.classList.remove('show');
+  lockEl.classList.remove('show');
+
+  if (!id || !pw) { errEl.classList.add('show'); return; }
+
+  /* メイン管理者チェック */
+  const storedId = localStorage.getItem('rk_adminId') || 'rootadmin';
+  if (id === storedId) {
+    const ok = await RK.verifyAdminPassword(pw);
+    if (!ok) {
+      recordFailedAttempt();
+      errEl.classList.add('show');
+      if (isLockedOut()) { errEl.classList.remove('show'); lockEl.classList.add('show'); document.getElementById('btn-login').disabled = true; }
+      return;
+    }
+    resetAttempts();
+    /* TOTP が有効なら2段階目へ */
+    const totpSecret = localStorage.getItem('rk_totpSecret');
+    if (totpSecret) {
+      _pwVerified = true;
+      showTOTPStep();
+    } else {
+      /* TOTP 未設定 → そのままログイン */
+      RK.setAdminSession();
+      location.href = 'admin-panel.html';
+    }
+    return;
+  }
+
+  /* サブ管理者チェック */
+  const subId = localStorage.getItem('rk_subAdminId') || 'subadmin';
+  if (id === subId) {
+    const ok = await RK.subAdminLogin(pw);
+    if (!ok) {
+      recordFailedAttempt();
+      errEl.classList.add('show');
+      if (isLockedOut()) { errEl.classList.remove('show'); lockEl.classList.add('show'); document.getElementById('btn-login').disabled = true; }
+      return;
+    }
+    resetAttempts();
+    location.href = 'admin-panel.html';
+    return;
+  }
+
+  /* IDが一致しない */
+  recordFailedAttempt();
+  errEl.classList.add('show');
+  if (isLockedOut()) { errEl.classList.remove('show'); lockEl.classList.add('show'); document.getElementById('btn-login').disabled = true; }
+}
+
+/* ── キーボード ── */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const totpVisible = document.getElementById('totp-step').style.display !== 'none';
+  if (totpVisible) {
+    if (!document.getElementById('btn-totp').disabled) doTOTPVerify();
+  } else {
+    if (!document.getElementById('btn-login').disabled) doAdminLogin();
+  }
+});
+
+/* ── 初期化 ── */
+if (isLockedOut()) {
+  document.getElementById('lockout-msg').classList.add('show');
+}
+updateAttemptCounter();
+
+/* HTTP 警告 */
+if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+  document.getElementById('http-warn').style.display = 'block';
+}
+
+/* 既にログイン済みなら管理パネルへ */
+if (RK.isAdminLoggedIn() || RK.isSubAdminLoggedIn()) location.href = 'admin-panel.html';
+
+/* デフォルトパスワード初期化 */
+(async () => {
+  if (!localStorage.getItem('rk_adminHash')) {
+    const hash = await RK.hashPassword('RootAdmin2026!');
+    localStorage.setItem('rk_adminHash', hash);
+  }
+  if (!localStorage.getItem('rk_adminId')) {
+    localStorage.setItem('rk_adminId', 'rootadmin');
+  }
+  if (!localStorage.getItem('rk_subAdminHash')) {
+    const hash = await RK.hashPassword('SubAdmin2026!');
+    localStorage.setItem('rk_subAdminHash', hash);
+  }
+  if (!localStorage.getItem('rk_subAdminId')) {
+    localStorage.setItem('rk_subAdminId', 'subadmin');
+  }
+})();
+</script>
+</body>
+</html>

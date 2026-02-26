@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PREMIUM会員 | ROOT競輪</title>
+<style>
+:root{
+  --main-blue:#0047AB;--sub-dark:#001f4d;--accent-yellow:#FFEB3B;
+  --register-orange:#FF9800;--premium-gold:#c8a400;--premium-dark:#7a5c00;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Hiragino Sans","Meiryo",sans-serif;background:#0a0a14;color:#fff;padding-bottom:80px;line-height:1.5;}
+
+/* ── Header ── */
+header{background:rgba(0,0,0,.6);backdrop-filter:blur(10px);color:#fff;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(200,164,0,.3);}
+.site-title{font-weight:900;font-size:1rem;color:var(--accent-yellow);text-decoration:none;}
+.btn-back{color:#ccc;text-decoration:none;font-size:.82rem;display:flex;align-items:center;gap:4px;}
+
+/* ── Hero ── */
+.hero{padding:40px 20px 30px;text-align:center;position:relative;overflow:hidden;background:linear-gradient(180deg,#1a0e00 0%,#0a0a14 100%);}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(200,164,0,.25) 0%,transparent 70%);pointer-events:none;}
+.crown{font-size:4rem;margin-bottom:10px;display:block;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.hero-title{font-size:1.9rem;font-weight:900;background:linear-gradient(135deg,#c8a400,#f5d800,#c8a400);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
+.hero-sub{font-size:.88rem;color:#ccc;margin-bottom:16px;line-height:1.6;}
+.hero-cta{display:inline-block;background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-weight:900;padding:14px 36px;border-radius:30px;font-size:1rem;text-decoration:none;box-shadow:0 4px 20px rgba(200,164,0,.5);margin-bottom:8px;}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(200,164,0,.7);}
+.hero-note{font-size:.72rem;color:#888;}
+/* ── プラン切り替え ── */
+.plan-toggle-wrap{padding:20px 16px 0;}
+.plan-toggle{display:flex;background:rgba(255,255,255,.08);border-radius:30px;padding:4px;border:1px solid rgba(255,255,255,.12);}
+.plan-toggle-btn{flex:1;border:none;background:none;padding:10px 8px;border-radius:26px;font-size:.82rem;font-weight:bold;cursor:pointer;color:#888;transition:all .2s;position:relative;}
+.plan-toggle-btn.active{background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;}
+.plan-toggle-btn .save-tag{position:absolute;top:-10px;right:4px;background:#ff3b3b;color:#fff;font-size:.55rem;font-weight:bold;padding:2px 6px;border-radius:8px;white-space:nowrap;}
+/* ── プランカード ── */
+.plan-panel{display:none;}
+.plan-panel.active{display:block;}
+.plan-detail-card{background:linear-gradient(135deg,rgba(200,164,0,.12),rgba(245,216,0,.06));border:2px solid var(--premium-gold);border-radius:16px;padding:20px 18px;margin:12px 16px 0;}
+.plan-price-row{display:flex;align-items:baseline;gap:6px;margin-bottom:4px;}
+.plan-price-big{font-size:2.4rem;font-weight:900;color:#fff;}
+.plan-price-unit{font-size:.85rem;color:#aaa;}
+.plan-price-sub{font-size:.75rem;color:var(--premium-gold);margin-bottom:12px;}
+.plan-saving-badge{display:inline-block;background:rgba(255,59,59,.2);border:1px solid rgba(255,59,59,.5);color:#ff8080;font-size:.72rem;font-weight:bold;padding:4px 12px;border-radius:20px;margin-bottom:14px;}
+.paypal-wrap{margin-top:14px;}
+/* ── 比較表 ── */
+.compare-banner{margin:16px 16px 0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;}
+.compare-banner h4{font-size:.8rem;color:#aaa;margin-bottom:10px;text-align:center;}
+.compare-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:.8rem;}
+.compare-row:last-child{border-bottom:none;}
+.compare-label{color:#888;}
+.compare-monthly{color:#ccc;}
+.compare-annual{color:var(--premium-gold);font-weight:bold;}
+
+/* ── 特典カード群 ── */
+.benefits-section{padding:0 16px 10px;}
+.section-label{text-align:center;font-size:.7rem;font-weight:bold;color:var(--premium-gold);letter-spacing:.12em;text-transform:uppercase;margin:28px 0 14px;}
+.benefit-card{background:rgba(255,255,255,.05);border:1px solid rgba(200,164,0,.25);border-radius:16px;padding:18px;margin-bottom:12px;display:flex;align-items:flex-start;gap:14px;}
+.benefit-icon{font-size:2rem;flex-shrink:0;width:48px;text-align:center;}
+.benefit-body h4{font-size:.95rem;font-weight:bold;color:var(--accent-yellow);margin-bottom:4px;}
+.benefit-body p{font-size:.8rem;color:#bbb;line-height:1.6;}
+.benefit-tag{display:inline-block;margin-top:6px;background:rgba(200,164,0,.2);color:var(--premium-gold);font-size:.65rem;padding:2px 8px;border-radius:10px;font-weight:bold;}
+
+/* ── 料金プラン ── */
+.plans-section{padding:0 16px;}
+.plan-card{border-radius:16px;padding:20px;margin-bottom:12px;position:relative;overflow:hidden;}
+.plan-standard{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);}
+.plan-premium{background:linear-gradient(135deg,rgba(200,164,0,.15),rgba(245,216,0,.08));border:2px solid var(--premium-gold);}
+.plan-recommended{position:absolute;top:12px;right:12px;background:var(--premium-gold);color:#000;font-size:.65rem;font-weight:bold;padding:2px 10px;border-radius:10px;}
+.plan-name{font-size:.75rem;color:#aaa;margin-bottom:6px;font-weight:bold;letter-spacing:.08em;}
+.plan-price{font-size:2rem;font-weight:900;color:#fff;}
+.plan-price span{font-size:.75rem;color:#aaa;font-weight:normal;}
+.plan-features{list-style:none;margin:14px 0;display:flex;flex-direction:column;gap:6px;}
+.plan-features li{font-size:.8rem;color:#ccc;display:flex;align-items:center;gap:8px;}
+.plan-features li::before{content:"✓";color:var(--premium-gold);font-weight:bold;flex-shrink:0;}
+.plan-features li.disabled{color:#555;}
+.plan-features li.disabled::before{content:"✗";color:#555;}
+.plan-btn{display:block;text-align:center;padding:12px;border-radius:20px;font-weight:bold;font-size:.88rem;text-decoration:none;margin-top:14px;}
+.plan-btn-standard{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.plan-btn-premium{background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;}
+
+/* ── POINT説明 ── */
+.point-section{margin:0 16px;background:linear-gradient(135deg,rgba(0,71,171,.3),rgba(0,31,77,.3));border:1px solid rgba(0,71,171,.4);border-radius:16px;padding:20px;margin-bottom:20px;}
+.point-section h3{font-size:1rem;font-weight:bold;color:var(--accent-yellow);margin-bottom:10px;}
+.point-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:.82rem;color:#ccc;}
+.point-badge{background:var(--main-blue);color:#fff;padding:3px 10px;border-radius:10px;font-weight:bold;font-size:.75rem;flex-shrink:0;}
+
+/* ── FAQ ── */
+.faq-section{padding:0 16px;}
+.faq-item{border-bottom:1px solid rgba(255,255,255,.1);padding:14px 0;}
+.faq-q{font-size:.85rem;font-weight:bold;color:#eee;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.faq-a{font-size:.8rem;color:#aaa;margin-top:8px;line-height:1.7;display:none;}
+.faq-a.open{display:block;}
+.faq-arrow{transition:transform .25s;}
+.faq-arrow.open{transform:rotate(180deg);}
+
+/* ── 底部CTA ── */
+.bottom-cta{margin:24px 16px;text-align:center;}
+.bottom-cta a{display:block;background:linear-gradient(135deg,#c8a400,#f5d800);color:#000;font-weight:900;padding:16px;border-radius:30px;font-size:1.05rem;text-decoration:none;box-shadow:0 4px 20px rgba(200,164,0,.45);}
+.bottom-cta p{font-size:.72rem;color:#666;margin-top:8px;}
+
+/* ── Bottom Nav ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.9);border-top:1px solid rgba(255,255,255,.1);display:flex;z-index:200;}
+.bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;text-decoration:none;color:#666;font-size:.58rem;gap:2px;}
+.bottom-nav a.active{color:var(--premium-gold);}
+.bottom-nav-icon{font-size:1.2rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="btn-back">← 戻る</a>
+  <a href="index.html" class="site-title">ROOT競輪</a>
+  <div></div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <span class="crown">👑</span>
+  <h1 class="hero-title">ROOT PREMIUM</h1>
+  <p class="hero-sub">プロ仕様のAI予想で、<br>競輪を次のステージへ。</p>
+  <a href="#plans" class="hero-cta" onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'});return false;">今すぐPREMIUMに登録</a><br>
+  <span class="hero-note">いつでも解約可能 / PayPal決済</span>
+</section>
+
+<!-- 特典一覧 -->
+<div class="benefits-section">
+  <div class="section-label">PREMIUM 特典一覧</div>
+
+  <div class="benefit-card">
+    <div class="benefit-icon">🤖</div>
+    <div class="benefit-body">
+      <h4>PRO AI予想 全レース見放題</h4>
+      <p>AIが出す信頼度によって変わりますが、信頼度が高いレースになってくると的中率は80%を超えます。ただし競輪はスポーツであり、的中を保証するものではありません。</p>
+      <span class="benefit-tag">信頼度スコア付き</span>
+    </div>
+  </div>
+
+  <div class="benefit-card">
+    <div class="benefit-icon">💎</div>
+    <div class="benefit-body">
+      <h4>ROOT POINT 毎月1,000pt進呈</h4>
+      <p>毎月1,000ROOT POINTが自動付与されます。ポイントは限定コンテンツの解放や特別予想の購入に利用可能。貯めてお得に活用しましょう。</p>
+      <span class="benefit-tag">月1,000pt 自動付与</span>
+    </div>
+  </div>
+
+  <div class="benefit-card">
+    <div class="benefit-icon">🚫</div>
+    <div class="benefit-body">
+      <h4>広告完全非表示</h4>
+      <p>サイト内の全ての広告が非表示になり、快適にコンテンツを楽しめます。スマートフォンでの操作性が格段に向上します。</p>
+      <span class="benefit-tag">すっきり快適閲覧</span>
+    </div>
+  </div>
+
+  <div class="benefit-card">
+    <div class="benefit-icon">💰</div>
+    <div class="benefit-body">
+      <h4>実力7チャレンジ 1チャレンジ20回エントリー</h4>
+      <p>7レース全的中でポイント山分けの実力7チャレンジに1チャレンジ20通りまで予想を送信可能。的中率を最大化できます。</p>
+      <span class="benefit-tag">20通りの予想で当選確率アップ</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ROOT POINT説明 -->
+<div class="point-section" style="margin-top:8px;">
+  <h3>💎 ROOT POINTとは？</h3>
+  <div class="point-row">
+    <span class="point-badge">PREMIUM</span>
+    毎月1,000ptが自動付与
+  </div>
+  <p style="font-size:.75rem;color:#888;margin-top:10px;">獲得したポイントは限定予想コンテンツ解放や、将来的な特典交換に利用できます。</p>
+</div>
+
+<!-- 料金プラン -->
+<div class="plans-section" id="plans">
+  <div class="section-label">料金プラン</div>
+
+  <!-- 無料プラン -->
+  <div class="plan-card plan-standard">
+    <div class="plan-name">FREE</div>
+    <div class="plan-price">¥0 <span>/ 月</span></div>
+    <ul class="plan-features">
+      <li>無料展開予想コメント</li>
+      <li>PRO USER予想閲覧（購入）</li>
+      <li>実力7チャレンジ（1日1予想）</li>
+      <li class="disabled">PRO AI予想（全レース）</li>
+      <li class="disabled">ROOT POINT 進呈</li>
+      <li class="disabled">広告非表示</li>
+    </ul>
+    <a href="register.html" class="plan-btn plan-btn-standard">無料で始める</a>
+  </div>
+
+  <!-- PREMIUMプラン切替 -->
+  <div class="plan-toggle-wrap">
+    <div class="plan-toggle">
+      <button class="plan-toggle-btn" id="btn-monthly" onclick="switchPlan('monthly')">月額プラン</button>
+      <button class="plan-toggle-btn active" id="btn-annual" onclick="switchPlan('annual')">
+        年間プラン
+        <span class="save-tag">22%OFF</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 月額プランカード -->
+  <div class="plan-panel" id="plan-monthly">
+    <div class="plan-detail-card">
+      <div class="plan-name" style="color:var(--premium-gold);margin-bottom:8px;">PREMIUM 月額プラン</div>
+      <div class="plan-price-row">
+        <span class="plan-price-big">¥1,490</span>
+        <span class="plan-price-unit">/ 月（税込）</span>
+      </div>
+      <div class="plan-price-sub">年間 ¥17,880 相当</div>
+      <ul class="plan-features" style="margin-bottom:0;">
+        <li>PRO AI予想（全レース見放題）</li>
+        <li>ROOT POINT 毎月1,000pt自動付与</li>
+        <li>広告完全非表示</li>
+        <li>実力7チャレンジ 1チャレンジ20回エントリー</li>
+      </ul>
+      <div class="paypal-wrap">
+        <div id="paypal-button-container-P-6LW37192VW717671NNGOH5GA"></div>
+      </div>
+      <p style="font-size:.65rem;color:#666;text-align:center;margin-top:8px;">¥1,490/月で自動継続。いつでも解約可能。</p>
+    </div>
+  </div>
+
+  <!-- 年間プランカード -->
+  <div class="plan-panel active" id="plan-annual">
+    <div class="plan-detail-card" style="border-color:#f5d800;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div class="plan-name" style="color:var(--premium-gold);">PREMIUM 年間プラン</div>
+        <span style="background:linear-gradient(135deg,#ff3b3b,#ff6b35);color:#fff;font-size:.6rem;font-weight:bold;padding:2px 8px;border-radius:10px;">🔥 最もお得</span>
+      </div>
+      <div class="plan-price-row">
+        <span class="plan-price-big">¥13,900</span>
+        <span class="plan-price-unit">/ 年（税込）</span>
+      </div>
+      <div class="plan-price-sub" style="color:#f5d800;">月あたり ¥1,158 — 月額より <strong style="color:#ff8080;">¥3,980お得！</strong></div>
+      <ul class="plan-features" style="margin-bottom:0;">
+        <li>PRO AI予想（全レース見放題）</li>
+        <li>ROOT POINT 毎月1,000pt自動付与</li>
+        <li>広告完全非表示</li>
+        <li>実力7チャレンジ 1チャレンジ20回エントリー</li>
+      </ul>
+      <div class="paypal-wrap">
+        <div id="paypal-button-container-P-71T69830TG3007314NGOH5TQ"></div>
+      </div>
+      <p style="font-size:.65rem;color:#666;text-align:center;margin-top:8px;">¥13,900/年で自動継続。いつでも解約可能。</p>
+    </div>
+  </div>
+
+  <!-- 月額vs年間比較 -->
+  <div class="compare-banner">
+    <h4>📊 プラン比較</h4>
+    <div class="compare-row">
+      <span class="compare-label">月額換算</span>
+      <span class="compare-monthly">月額: ¥1,490/月</span>
+      <span class="compare-annual">年間: ¥1,158/月</span>
+    </div>
+    <div class="compare-row">
+      <span class="compare-label">年間合計</span>
+      <span class="compare-monthly">¥17,880</span>
+      <span class="compare-annual">¥13,900</span>
+    </div>
+    <div class="compare-row" style="border-bottom:none;">
+      <span class="compare-label">節約額</span>
+      <span class="compare-monthly">—</span>
+      <span class="compare-annual" style="font-size:.9rem;">¥3,980 節約！</span>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq-section">
+  <div class="section-label">よくある質問</div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      いつでも解約できますか？<span class="faq-arrow">▼</span>
+    </div>
+    <div class="faq-a">はい、いつでもマイページから解約できます。解約後は次回更新日まで引き続きPREMIUM特典をご利用いただけます。</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      ROOT POINTの有効期限は？<span class="faq-arrow">▼</span>
+    </div>
+    <div class="faq-a">毎月付与されるROOT POINTは付与から12ヶ月間有効です。PREMIUM会員のご利用継続中はポイントが累積されます。</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      PRO AI予想の精度はどのくらいですか？<span class="faq-arrow">▼</span>
+    </div>
+    <div class="faq-a">AIが出す信頼度によって変わりますが、信頼度が高いレースになってくると的中率は80%を超えます。ただし競輪はスポーツであり、的中を保証するものではありません。</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      支払い方法は何が使えますか？<span class="faq-arrow">▼</span>
+    </div>
+    <div class="faq-a">PayPal経由でクレジットカード（VISA / Mastercard / JCB / American Express）またはPayPal残高でお支払いいただけます。月額プランは毎月、年間プランは毎年自動更新となります。</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      年間プランと月額プラン、どちらがお得ですか？<span class="faq-arrow">▼</span>
+    </div>
+    <div class="faq-a">年間プランは¥13,900/年（月換算 ¥1,158）で、月額プラン（¥1,490×12=¥17,880/年）と比べて年間¥3,980お得です。約22%割引になるため、継続利用をお考えの方には年間プランを強くおすすめします。</div>
+  </div>
+</div>
+
+<!-- 底部CTA -->
+<div class="bottom-cta">
+  <a href="#plans" onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'});return false;">👑 PREMIUMに登録する</a>
+  <p>いつでも解約可能 / PayPal決済</p>
+</div>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span class="bottom-nav-icon">🏠</span>ホーム</a>
+  <a href="index.html"><span class="bottom-nav-icon">🤖</span>AI予想</a>
+  <a href="premium.html" class="active"><span class="bottom-nav-icon">👑</span>PREMIUM</a>
+  <a href="login.html" id="mypage-nav-link"><span class="bottom-nav-icon">👤</span>マイページ</a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/common.js"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AcYyjhzzH8KHsTaYLRXT7DsnQNpba3TV9StXKtHlMQ63ETEuCI8RAX1AqteNfusSe_O3ozaETHCkHZj6&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script>
+/* ── ログイン必須チェック ── */
+if (!RK.getUser()) location.href = 'login.html?redirect=premium.html';
+/* ── PREMIUM済みなら会員ページへリダイレクト ── */
+if (RK.isPremium()) location.href = 'premium-member.html';
+/* ── FAQ ── */
+function toggleFaq(el) {
+  const ans = el.nextElementSibling;
+  const arrow = el.querySelector('.faq-arrow');
+  ans.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+/* ── プラン切替 ── */
+function switchPlan(plan) {
+  document.getElementById('btn-monthly').classList.toggle('active', plan === 'monthly');
+  document.getElementById('btn-annual').classList.toggle('active',  plan === 'annual');
+  document.getElementById('plan-monthly').classList.toggle('active', plan === 'monthly');
+  document.getElementById('plan-annual').classList.toggle('active',  plan === 'annual');
+}
+
+/* ── PayPal 登録完了処理 ── */
+function onPremiumApproved(subscriptionID, plan) {
+  const u = RK.getUser();
+  if (u) {
+    u.premium      = true;
+    u.premiumSubId = subscriptionID;
+    u.premiumPlan  = plan;
+    u.points = (u.points || 0) + 1000;
+    RK.saveUser(u);
+  }
+  location.href = 'premium-member.html';
+}
+
+/* ── PayPal: 月額プラン ── */
+paypal.Buttons({
+  style: { shape: 'rect', color: 'gold', layout: 'vertical', label: 'subscribe' },
+  createSubscription: function(data, actions) {
+    return actions.subscription.create({ plan_id: 'P-6LW37192VW717671NNGOH5GA' });
+  },
+  onApprove: function(data) { onPremiumApproved(data.subscriptionID, 'monthly'); }
+}).render('#paypal-button-container-P-6LW37192VW717671NNGOH5GA');
+
+/* ── PayPal: 年間プラン ── */
+paypal.Buttons({
+  style: { shape: 'rect', color: 'gold', layout: 'vertical', label: 'subscribe' },
+  createSubscription: function(data, actions) {
+    return actions.subscription.create({ plan_id: 'P-71T69830TG3007314NGOH5TQ' });
+  },
+  onApprove: function(data) { onPremiumApproved(data.subscriptionID, 'annual'); }
+}).render('#paypal-button-container-P-71T69830TG3007314NGOH5TQ');
+
+/* ── ログイン済みならマイページへ ── */
+if (RK.getUser()) document.getElementById('mypage-nav-link').href = 'mypage.html';
+</script>
+</body>
+</html>
