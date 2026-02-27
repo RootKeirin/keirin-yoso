@@ -482,17 +482,24 @@ const RK = {
   /* ───────── 管理者認証 ───────── */
   async hashPassword(pw) {
     /* crypto.subtle は HTTPS または localhost でのみ動作する */
-    if (crypto && crypto.subtle) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    if (typeof crypto !== 'undefined' && crypto.subtle) {
+      try {
+        const buf = await Promise.race([
+          crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw)),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+        ]);
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+      } catch(e) {
+        /* タイムアウトまたはエラー時はフォールバックへ */
+      }
     }
-    /* HTTP 環境向けフォールバック: 独自ハッシュ（HTTPS 推奨） */
-    let h = 0x811c9dc5;
+    /* フォールバック: シンプルな数値ハッシュ */
+    let h = 5381;
     for (let i = 0; i < pw.length; i++) {
-      h ^= pw.charCodeAt(i);
-      h = (h * 0x01000193) >>> 0;
+      h = ((h << 5) + h) ^ (pw.charCodeAt(i) & 0xff);
+      h = h >>> 0;
     }
-    return 'fbk_' + h.toString(16).padStart(8, '0') + '_' + btoa(pw.split('').reverse().join('')).replace(/=/g,'');
+    return 'fbk_' + h.toString(16).padStart(8, '0') + '_' + pw.length.toString(16);
   },
   isAdminLoggedIn() {
     const t = sessionStorage.getItem('rk_adminToken');
