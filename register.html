@@ -234,63 +234,70 @@ async function doRegister() {
   btn.disabled = true;
   btn.textContent = '送信中...';
 
-  /* パスワードをSHA-256でハッシュ化してから保存 */
-  const hashedPw = await RK.hashPassword(pw);
+  try {
+    /* パスワードをSHA-256でハッシュ化してから保存 */
+    const hashedPw = await RK.hashPassword(pw);
 
-  /* 仮登録: emailVerified = false、プランは常に無料 */
-  const user = {
-    name, email,
-    premium: false,
-    points: 0,
-    emailVerified: false
-  };
-  RK.saveUser(user);
+    /* 仮登録: emailVerified = false、プランは常に無料 */
+    const user = {
+      name, email,
+      premium: false,
+      points: 0,
+      emailVerified: false
+    };
+    RK.saveUser(user);
 
-  /* 全ユーザー台帳にはハッシュ済みパスワードを保存 */
-  const allUsers = RK.getAllUsers();
-  allUsers[email] = { ...user, password: hashedPw };
-  RK.saveAllUsers(allUsers);
+    /* 全ユーザー台帳にはハッシュ済みパスワードを保存 */
+    const allUsers = RK.getAllUsers();
+    allUsers[email] = { ...user, password: hashedPw };
+    RK.saveAllUsers(allUsers);
 
-  /* 認証トークン生成（暗号的乱数） */
-  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-    .map(b => b.toString(16).padStart(2,'0')).join('');
-  localStorage.setItem('rk_verify_' + token, email);
+    /* 認証トークン生成（暗号的乱数） */
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map(b => b.toString(16).padStart(2,'0')).join('');
+    localStorage.setItem('rk_verify_' + token, email);
 
-  /* 本登録URL生成 */
-  const verifyURL = `${location.origin}${location.pathname}?verify=${token}&email=${encodeURIComponent(email)}`;
+    /* 本登録URL生成 */
+    const verifyURL = `${location.origin}${location.pathname}?verify=${token}&email=${encodeURIComponent(email)}`;
 
-  /* フォームを隠して案内を表示 */
-  document.getElementById('plan-banner-free').style.display = 'none';
-  document.querySelector('.form-card').style.display = 'none';
-  document.getElementById('verify-sent').style.display = 'block';
-  document.getElementById('verify-sent-email').textContent = email;
+    /* フォームを隠して案内を表示 */
+    document.getElementById('plan-banner-free').style.display = 'none';
+    document.querySelector('.form-card').style.display = 'none';
+    document.getElementById('verify-sent').style.display = 'block';
+    document.getElementById('verify-sent-email').textContent = email;
 
-  /* EmailJSでメール送信を試みる */
-  const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
-  let emailSent = false;
-  if (ejsCfg.serviceId && ejsCfg.verifyTemplateId && ejsCfg.publicKey) {
-    try {
-      emailjs.init(ejsCfg.publicKey);
-      await emailjs.send(ejsCfg.serviceId, ejsCfg.verifyTemplateId, {
-        to_email: email,
-        verify_url: verifyURL,
-        user_name: name
-      });
-      emailSent = true;
-    } catch(e) {
-      console.warn('EmailJS送信エラー:', e);
+    /* EmailJSでメール送信を試みる */
+    const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
+    let emailSent = false;
+    if (ejsCfg.serviceId && ejsCfg.verifyTemplateId && ejsCfg.publicKey) {
+      try {
+        emailjs.init(ejsCfg.publicKey);
+        await emailjs.send(ejsCfg.serviceId, ejsCfg.verifyTemplateId, {
+          to_email: email,
+          verify_url: verifyURL,
+          user_name: name
+        });
+        emailSent = true;
+      } catch(e) {
+        console.warn('EmailJS送信エラー:', e);
+      }
     }
-  }
 
-  /* EmailJS未設定またはエラー時はフォールバックとしてURLを表示 */
-  if (!emailSent) {
-    document.getElementById('verify-url-box').textContent = verifyURL;
-    document.getElementById('verify-link').href = verifyURL;
-    document.getElementById('verify-fallback').style.display = 'block';
-  }
+    /* EmailJS未設定またはエラー時はフォールバックとしてURLを表示 */
+    if (!emailSent) {
+      document.getElementById('verify-url-box').textContent = verifyURL;
+      document.getElementById('verify-link').href = verifyURL;
+      document.getElementById('verify-fallback').style.display = 'block';
+    }
 
-  btn.disabled = false;
-  btn.textContent = '無料で登録する';
+    btn.disabled = false;
+    btn.textContent = '無料で登録する';
+  } catch(err) {
+    console.error('登録エラー:', err);
+    showErr('登録処理中にエラーが発生しました。もう一度お試しください。（' + (err.message || err) + '）');
+    btn.disabled = false;
+    btn.textContent = '無料で登録する';
+  }
 }
 
 let _resendCooldownTimer = null;
