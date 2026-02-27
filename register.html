@@ -232,11 +232,12 @@ async function doRegister() {
   /* ボタンを無効化 */
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.textContent = '送信中...';
+  btn.textContent = '[1]ハッシュ中...';
 
   try {
     /* パスワードをSHA-256でハッシュ化してから保存 */
     const hashedPw = await RK.hashPassword(pw);
+    btn.textContent = '[2]保存中...';
 
     /* 仮登録: emailVerified = false、プランは常に無料 */
     const user = {
@@ -251,6 +252,7 @@ async function doRegister() {
     const allUsers = RK.getAllUsers();
     allUsers[email] = { ...user, password: hashedPw };
     RK.saveAllUsers(allUsers);
+    btn.textContent = '[3]トークン生成中...';
 
     /* 認証トークン生成（暗号的乱数） */
     const token = Array.from(crypto.getRandomValues(new Uint8Array(16)))
@@ -266,6 +268,7 @@ async function doRegister() {
     document.getElementById('verify-sent').style.display = 'block';
     document.getElementById('verify-sent-email').textContent = email;
 
+    btn.textContent = '[4]画面切替中...';
     /* EmailJSでメール送信を試みる */
     const ejsCfg = JSON.parse(localStorage.getItem('rk_emailjs_config') || '{}');
     let emailSent = false;

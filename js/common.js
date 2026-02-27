@@ -481,19 +481,7 @@ const RK = {
 
   /* ───────── 管理者認証 ───────── */
   async hashPassword(pw) {
-    /* crypto.subtle は HTTPS または localhost でのみ動作する */
-    if (typeof crypto !== 'undefined' && crypto.subtle) {
-      try {
-        const buf = await Promise.race([
-          crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw)),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-        ]);
-        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-      } catch(e) {
-        /* タイムアウトまたはエラー時はフォールバックへ */
-      }
-    }
-    /* フォールバック: シンプルな数値ハッシュ */
+    /* シンプルな同期ハッシュ（全環境対応） */
     let h = 5381;
     for (let i = 0; i < pw.length; i++) {
       h = ((h << 5) + h) ^ (pw.charCodeAt(i) & 0xff);
